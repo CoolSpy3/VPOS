@@ -53,11 +53,9 @@ pm_begin:
 	mov fs, ax
 	mov gs, ax
 
-	mov [0xb8000], byte 'X'
+	jmp 0x1000
 
 	jmp $
 
 times 510-($-$$) db 0
 dw 0xaa55
-
-times 15*256 dw 0xDADA
