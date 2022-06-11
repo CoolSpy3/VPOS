@@ -20,4 +20,3 @@ clean-up:
 	rm kernel.bin
 
 all: boot_section.bin kernel_entry.o kernel.o kernel.bin live-image clean-up
-
