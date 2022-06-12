@@ -1,1 +1,0 @@
-{"buildTargets":["all","boot_section.bin","clean-up","kernel.bin","kernel.o","kernel_entry.o","live-image"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}
