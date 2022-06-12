@@ -39,16 +39,23 @@ popcli:
 
 aquire:
     call pushcli
-    cmp si, 0
+    cmp [si], 0
     jne panic
 
     to_aquire:
 
         mov eax, 1
         lock xchg si, eax
-        cmp si, 0
-        jnz to_aquire
+        cmp [si], 0
+        jne to_aquire
 
+    ret
+
+release:
+    cmp [si], 0
+    je panic
+    mov [si], 0
+    call popcli
     ret
 
 ncli db 0
