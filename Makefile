@@ -11,5 +11,12 @@ clean-up:
 	rm boot_section.bin
 	rm kernel_entry.bin
 
-all: boot_section.bin kernel_entry.bin live-image clean-up
+clear_old_image:
+ifneq (,$(wildcard ./live-image))
+	rm live-image
+endif
 
+build: clear_old_image boot_section.bin kernel_entry.bin live-image clean-up
+
+run:
+	qemu-system-i386 -drive format=raw,file=live-image
