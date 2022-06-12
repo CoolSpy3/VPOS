@@ -34,6 +34,7 @@ kfree:
     mov edi, eax
     mov eax, 1
     mov ecx, 4096
+    call memset
     pop eax
 
     cmp [use_lock], byte 0
