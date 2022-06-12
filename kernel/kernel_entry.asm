@@ -14,7 +14,7 @@ jmp $
 %include "kernel/spinlock.asm"
 %include "kernel/string.asm"
 
-times 15*256 dw 0xDADA
+times 20*256 dw 0xDADA
 
 ; Must be last line of kernel
 end_addr equ $
