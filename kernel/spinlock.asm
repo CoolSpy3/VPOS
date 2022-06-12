@@ -2,7 +2,6 @@ pushcli:
     cmp ncli, 0
     jne disint
 
-    
     pushfd
     pop eax
     and eax, 0x200
@@ -12,7 +11,6 @@ pushcli:
         cli
         inc ncli
         ret
-    
 
 
 popcli:
@@ -60,7 +58,3 @@ release:
 
 ncli db 0
 intea db 0
-
-
-
-    
