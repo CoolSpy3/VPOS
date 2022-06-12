@@ -1,19 +1,22 @@
 pushcli:
+    push eax
     cmp ncli, 0
-    jne disint
+    jne pushcli_disint
 
     pushfd
     pop eax
     and eax, 0x200
     mov intea, eax
 
-    disint:
+pushcli_disint:
         cli
         inc ncli
+        pop eax
         ret
 
 
 popcli:
+    push eax
     pushfd
     pop eax
     and eax, 0x200
@@ -32,27 +35,30 @@ popcli:
 
     sti
 
-    popcli_return:
-        ret
+popcli_return:
+    pop eax
+    ret
 
 aquire:
+    push eax
     call pushcli
     cmp [si], 0
     jne panic
 
-    to_aquire:
+to_aquire:
 
-        mov eax, 1
-        lock xchg si, eax
-        cmp [si], 0
-        jne to_aquire
+    mov eax, 1
+    lock xchg si, eax
+    cmp [esi], 0
+    jne to_aquire
 
+    pop eax
     ret
 
 release:
-    cmp [si], 0
+    cmp [esi], 0
     je panic
-    mov [si], 0
+    mov [esi], 0
     call popcli
     ret
 
