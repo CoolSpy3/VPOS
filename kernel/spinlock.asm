@@ -44,10 +44,12 @@ aquire:
 
     to_aquire:
 
-        lock
-        xchgl
+        mov eax, 1
+        lock xchg si, eax
+        cmp si, 0
+        jnz to_aquire
 
-        jmp to_aquire
+    ret
 
 ncli db 0
 intea db 0
