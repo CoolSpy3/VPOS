@@ -9,6 +9,11 @@ main:
 
 jmp $
 
+%include "kernel/kalloc.asm"
+%include "kernel/panic.asm"
+%include "kernel/spinlock.asm"
+%include "kernel/string.asm"
+
 times 15*256 dw 0xDADA
 
 ; Must be last line of kernel

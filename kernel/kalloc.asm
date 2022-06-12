@@ -36,16 +36,17 @@ kfree:
     mov ecx, 4096
     pop eax
 
-    cmp use_lock, 0
+    cmp [use_lock], byte 0
     je kfree_no_aquire
 
     mov si, slock
     call aquire
 
 kfree_no_aquire:
-    lea freelist, [freelist]
+    lea ecx, [freelist]
+    mov [freelist], ecx
 
-    cmp use_lock, 0
+    cmp [use_lock], byte 0
     je kfree_no_release
 
     call release
