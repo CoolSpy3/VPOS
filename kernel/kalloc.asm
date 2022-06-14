@@ -62,7 +62,6 @@ kalloc: ; allocates one 4096 byte page of memory
         ; ecx returns 0 if the page cant be allocated
         ; also this function probably dosent work at the moment
     push ecx
-    push eax
     cmp [use_lock], byte 0
     jne cont
 
@@ -75,19 +74,19 @@ kalloc: ; allocates one 4096 byte page of memory
     cmp ecx, 0 ; if(r) in c
     jne cont1
 
-    lea [freelist], ecx ; gets the next page(i think)
-                        ; kmem.freelist = r->next;
+    mov [freelist], ecx ; gets the next page(i think)
+                      ; kmem.freelist = r->next;
 
     cont1:
 
     cmp [use_lock], byte 0
-    je cont2
-
+    jne cont2
+    
     call release
 
     cont2:
 
-    pop eax
+    ret
 
 
 kmem:
