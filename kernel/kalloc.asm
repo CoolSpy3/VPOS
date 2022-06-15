@@ -61,31 +61,32 @@ kfree_no_release:
 kalloc: ; allocates one 4096 byte page of memory
         ; ecx returns 0 if the page cant be allocated
         ; also this function probably dosent work at the moment
-    push ecx
+    push esi
     cmp [use_lock], byte 0
-    jne cont
+    je kalloc_cont
 
-    mov si, slock
+    mov esi, slock
     call aquire
 
-    cont:
+    kalloc_cont:
 
     mov ecx, [freelist] ; r = kmem.freelist;
     cmp ecx, 0 ; if(r) in c
-    jne cont1
+    je kalloc_cont1
 
     mov [freelist], ecx ; gets the next page(i think)
                       ; kmem.freelist = r->next;
 
-    cont1:
+    kalloc_cont1:
 
     cmp [use_lock], byte 0
-    jne cont2
-    
+    je kalloc_cont2
+
     call release
 
-    cont2:
+    kalloc_cont2:
 
+    pop esi
     ret
 
 
