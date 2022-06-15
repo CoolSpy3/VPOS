@@ -119,7 +119,6 @@ write_regs:
     mov dx, VGA_crtc_data
     in al, dx
     or al, 0x80
-    mov dx, VGA_crtc_data
     out dx, al
 
     mov dx, VGA_crtc_index
@@ -155,7 +154,14 @@ write_regs:
     mov di, VGA_AC_write
     mov cl, 0
     mov ch, VGA_num_AC_regs
-    call write_reg_loop
+    call write_reg_loop_2
+
+    mov dx, VGA_instat_read
+    in al, dx
+
+    mov dx, VGA_AC_index
+    mov al, 0x20
+    out dx, al
 
     popad
     ret
@@ -174,6 +180,92 @@ write_reg_loop: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, ebx
     jl write_reg_loop
     ret
 
+write_reg_loop_2: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, ebx: start of VGAregister_data (will be incremented)
+    mov dx, VGA_instat_read
+    in al, dx
+
+    mov dx, si
+    mov al, cl
+    out dx, al
+    mov dx, di
+    mov al, [ebx]
+    out dx, al
+
+    inc ebx
+    inc cl
+    cmp cl, ch
+    jl write_reg_loop
+    ret
+
+draw_pixel: ; ax: x, bx: y, cl: color
+    pusha
+
+    mov dx, ax
+
+    mov ax, DISPLAY_width
+    push dx
+    mul bx
+    pop dx
+    add ax, dx
+
+    mov bx, dx
+
+    call vpoke
+
+    popa
+    ret
+
+vpoke: ; bx: offset, cl: value
+    pusha
+
+    mov dx, VGA_GC_index
+    mov al, 6
+    out dx, al
+    mov dx, VGA_GC_data
+    in al, dx
+
+    shr al, 2
+    and al, 3
+
+    cmp al, 0
+    je vpoke_fp_0
+    cmp al, 1
+    je vpoke_fp_1
+    cmp al, 2
+    je vpoke_fp_2
+    cmp al, 3
+    je vpoke_fp_3
+    jmp vpoke_fp_end
+
+    vpoke_fp_0:
+    vpoke_fp_1:
+    mov eax, 0xA0000000
+    jmp vpoke_fp_end
+
+    vpoke_fp_2:
+    mov eax, 0xB0000000
+    jmp vpoke_fp_end
+
+    vpoke_fp_3:
+    mov eax, 0xB8000000
+    jmp vpoke_fp_end
+
+    vpoke_fp_end:
+
+    call VGA_poke
+
+    popa
+    ret
+
+VGA_poke: ; ax: S, bx: O, cl: V
+    pusha
+
+    add ebx, eax
+
+    mov [ebx], cl
+
+    popa
+    ret
 
 VGA_seq_index equ 0x3c4
 VGA_seq_data equ 0x3c5
@@ -193,6 +285,9 @@ VGA_num_seq_regs equ 5
 VGA_num_crtc_regs equ 25
 VGA_num_GC_regs	equ 9
 VGA_num_AC_regs	equ 21
+
+DISPLAY_width equ 320
+DISPLAY_height equ 200
 
 empty_VGAregister_data_buffer:
     ;miscellaneous register(1)
@@ -272,82 +367,4 @@ empty_VGAregister_data_buffer:
     ;
 
 
-VGAregister_data:
-    ;miscellaneous register(1)
-    db 0x63
-    ;
-
-    ;sequence registers(5)
-    db 0x03
-    db 0x01
-    db 0x0f
-    db 0x00
-    db 0x0e
-    ;
-
-    ;crtc registers(25)
-    db 0x05f
-    db 0x4f
-    db 0x50
-    db 0x82
-    db 0x54
-    db 0x80
-    db 0xbf
-    db 0x1f
-
-    db 0x00
-    db 0x41
-    db 0x00
-    db 0x00
-    db 0x00
-    db 0x00
-    db 0x00
-    db 0x00
-
-    db 0x9c
-    db 0x0e
-    db 0x8f
-    db 0x28
-    db 0x40
-    db 0x96
-    db 0xb9
-    db 0xa3
-    ;
-
-    ;graphic's controller(GC) registers(9)
-    db 0x00
-    db 0x00
-    db 0x00
-    db 0x00
-    db 0x00
-    db 0x40
-    db 0x05
-    db 0x0f
-
-    db 0xff
-    ;
-
-    ;attribute controller(AC) registers(21)
-    db 0x00
-    db 0x01
-    db 0x02
-    db 0x03
-    db 0x04
-    db 0x05
-    db 0x06
-    db 0x07
-
-    db 0x08
-    db 0x09
-    db 0x0a
-    db 0x0b
-    db 0x0c
-    db 0x0d
-    db 0x0f
-    
-    db 0x41
-    db 0x00
-    db 0x0f
-    db 0x00
-    db 0x00
-    ;
+VGAregister_data: db 0x63, 0x03, 0x01, 0x0F, 0x00, 0x0E, 0x5F, 0x4F, 0x50, 0x82, 0x54, 0x80, 0xBF, 0x1F, 0x00, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x9C, 0x0E, 0x8F, 0x28, 0x40, 0x96, 0xB9, 0xA3, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x05, 0x0F, 0xFF, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x41, 0x00, 0x0F, 0x00, 0x00
