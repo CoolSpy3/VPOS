@@ -301,79 +301,18 @@ DISPLAY_height equ 200
 empty_VGAregister_data_buffer:
     ;miscellaneous register(1)
     db 0
-    ;
 
     ;sequence registers(5)
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    ;
+    times 5 db 0
 
     ;crtc registers(25)
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    ;
+    times 25 db 0
 
     ;graphic's controller(GC) registers(9)
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    ;
+    times 9 db 0
 
     ;attribute controller(AC) registers(21)
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    db 0
-    ;
+    times 21 db 0
 
 
 VGAregister_data: db 0x63, 0x03, 0x01, 0x0F, 0x00, 0x0E, 0x5F, 0x4F, 0x50, 0x82, 0x54, 0x80, 0xBF, 0x1F, 0x00, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x9C, 0x0E, 0x8F, 0x28, 0x40, 0x96, 0xB9, 0xA3, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x05, 0x0F, 0xFF, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x41, 0x00, 0x0F, 0x00, 0x00
