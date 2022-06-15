@@ -130,13 +130,13 @@ write_regs:
     and al, ~0x80
     out dx, al
 
-    mov al, [VGAregister_data+0x03]
+    mov al, [ebx+0x03]
     or al, 0x80
-    mov [VGAregister_data+0x03], al
+    mov [ebx+0x03], al
 
-    mov al, [VGAregister_data+0x11]
+    mov al, [ebx+0x11]
     and al, ~0x80
-    mov [VGAregister_data+0x11], al
+    mov [ebx+0x11], al
 
     mov si, VGA_crtc_index
     mov di, VGA_crtc_data
@@ -208,7 +208,7 @@ draw_pixel: ; ax: x, bx: y, cl: color
     pop dx
     add ax, dx
 
-    mov bx, dx
+    mov bx, ax
 
     call vpoke
 
@@ -257,7 +257,7 @@ vpoke: ; bx: offset, cl: value
     popa
     ret
 
-VGA_poke: ; ax: S, bx: O, cl: V
+VGA_poke: ; eax: S, ebx: O, cl: V
     pusha
 
     add ebx, eax
@@ -265,6 +265,15 @@ VGA_poke: ; ax: S, bx: O, cl: V
     mov [ebx], cl
 
     popa
+    ret
+
+disable_cursor:
+    mov al, 0x0A
+    mov dx, VGA_crtc_index
+    out dx, al
+    mov al, 0x20
+    mov dx, VGA_crtc_data
+    out dx, al
     ret
 
 VGA_seq_index equ 0x3c4

@@ -3,6 +3,7 @@
 
 main:
     call write_regs
+    call disable_cursor
 
     mov ax, 10
     mov bx, 10
