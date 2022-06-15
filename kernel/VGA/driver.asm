@@ -247,7 +247,6 @@ vpoke: ; bx: offset, cl: value
     jmp vpoke_fp_end
 
     vpoke_fp_3:
-    jmp vpoke_fp_1
     mov eax, 0xB8000000
     jmp vpoke_fp_end
 
