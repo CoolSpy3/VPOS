@@ -20,3 +20,6 @@ build: clear_old_image boot_section.bin kernel_entry.bin live-image clean-up
 
 run:
 	qemu-system-i386 -drive format=raw,file=live-image
+
+debug:
+	qemu-system-i386 -D ./log.txt -d guest_errors -drive format=raw,file=live-image
