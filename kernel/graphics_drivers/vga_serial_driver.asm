@@ -1,100 +1,100 @@
-dump_state: ; probably unnecessary,
-            ; but if I have a more basic print function
-            ; it might be useful.
-    call read_regs
-    call dump_regs
+; dump_state: ; probably unnecessary,
+;             ; but if I have a more basic print function
+;             ; it might be useful.
+;     call read_regs
+;     call dump_regs
 
-dump_regs: ; probably unnecessary,
-           ; but if I have a more basic print function
-           ; it might be useful.
-    ; push cx
-    ; add empty_VGAregister_data_buffer, 1
+; dump_regs: ; probably unnecessary,
+;            ; but if I have a more basic print function
+;            ; it might be useful.
+;     ; push cx
+;     ; add empty_VGAregister_data_buffer, 1
 
-    ; semantics(just a ton of reg dump loop calls)
-    ; too lazy to finish it
+;     ; semantics(just a ton of reg dump loop calls)
+;     ; too lazy to finish it
 
-    ; pop cx
-    ret
+;     ; pop cx
+;     ret
 
-reg_dump_loop:
-    ; push cx
-    ; mov ch, 0
+; reg_dump_loop:
+;     ; push cx
+;     ; mov ch, 0
 
-    ; reg_loop0:
-    ;     inc ch
-    ;     cmp ch, 8
-    ;     jl reg_loop0_maybe
+;     ; reg_loop0:
+;     ;     inc ch
+;     ;     cmp ch, 8
+;     ;     jl reg_loop0_maybe
 
-    ;     mov ch, 0
+;     ;     mov ch, 0
 
-    ;     reg_loop0_maybe:
-    ;     add empty_VGAregister_data_buffer, 8
-    ;     dec cl
-    ;     cmp cl, 0
-    ;     jne reg_loop0
-
-
-    ; pop cx
-    ret
-
-read_regs: ; probably unnecessary,
-           ; but if I have a more basic print function
-           ; it might be useful.
-    ; push ax
-    ; push si
-    ; push di
-    ; push ch
-
-    ; in ax, VGA_misc_read
-    ; mov [empty_VGAregister_data_buffer], ax
-
-    ; add empty_VGAregister_data_buffer, 1
-
-    ; mov si, VGA_seq_index ; VGA_index
-    ; mov di, VGA_seq_data ; VGA_data
-    ; mov ch, 5 ; loop end condition
-    ; call reg_read_loop ; call
-
-    ; mov si, VGA_crtc_index
-    ; mov di, VGA_crtc_data
-    ; mov ch, 25
-    ; call reg_read_loop
-
-    ; mov si, VGA_GC_index
-    ; mov di, VGA_GC_data
-    ; mov ch, 9
-    ; call reg_read_loop
+;     ;     reg_loop0_maybe:
+;     ;     add empty_VGAregister_data_buffer, 8
+;     ;     dec cl
+;     ;     cmp cl, 0
+;     ;     jne reg_loop0
 
 
-    ; mov si, VGA_AC_index
-    ; mov di, VGA_AC_read
-    ; mov ch, 21
-    ; call reg_read_loop
+;     ; pop cx
+;     ret
 
-    ; in ax, VGA_instat_read
-    ; out VGA_AC_index, 0x20
+; read_regs: ; probably unnecessary,
+;            ; but if I have a more basic print function
+;            ; it might be useful.
+;     ; push ax
+;     ; push si
+;     ; push di
+;     ; push ch
 
-    ; pop ax
-    ; pop si
-    ; pop di
-    ; pop ch
-    ret
+;     ; in ax, VGA_misc_read
+;     ; mov [empty_VGAregister_data_buffer], ax
 
-reg_read_loop: ;si: VGA_index, di: VGA_data, ch: loop end condition
-    ; push cl ; counter
-    ; mov cl, 0 ; set to 0
+;     ; add empty_VGAregister_data_buffer, 1
 
-    ; out si, cl
-    ; in ax, di
-    ; mov [empty_VGAregister_data_buffer], ax
-    ; inc cl
-    ; add empty_VGAregister_data_buffer, 1
+;     ; mov si, VGA_seq_index ; VGA_index
+;     ; mov di, VGA_seq_data ; VGA_data
+;     ; mov ch, 5 ; loop end condition
+;     ; call reg_read_loop ; call
 
-    ; cmp cl, ch
-    ; jne reg_read_loop
+;     ; mov si, VGA_crtc_index
+;     ; mov di, VGA_crtc_data
+;     ; mov ch, 25
+;     ; call reg_read_loop
 
-    ; pop cl
-    ret
+;     ; mov si, VGA_GC_index
+;     ; mov di, VGA_GC_data
+;     ; mov ch, 9
+;     ; call reg_read_loop
+
+
+;     ; mov si, VGA_AC_index
+;     ; mov di, VGA_AC_read
+;     ; mov ch, 21
+;     ; call reg_read_loop
+
+;     ; in ax, VGA_instat_read
+;     ; out VGA_AC_index, 0x20
+
+;     ; pop ax
+;     ; pop si
+;     ; pop di
+;     ; pop ch
+;     ret
+
+; reg_read_loop: ;si: VGA_index, di: VGA_data, ch: loop end condition
+;     ; push cl ; counter
+;     ; mov cl, 0 ; set to 0
+
+;     ; out si, cl
+;     ; in ax, di
+;     ; mov [empty_VGAregister_data_buffer], ax
+;     ; inc cl
+;     ; add empty_VGAregister_data_buffer, 1
+
+;     ; cmp cl, ch
+;     ; jne reg_read_loop
+
+;     ; pop cl
+;     ret
 
 write_regs:
     pushad
@@ -302,21 +302,21 @@ VGA_num_AC_regs	equ 21
 DISPLAY_width equ 320
 DISPLAY_height equ 200
 
-empty_VGAregister_data_buffer:
-    ;miscellaneous register(1)
-    db 0
+; empty_VGAregister_data_buffer:
+;     ;miscellaneous register(1)
+;     db 0
 
-    ;sequence registers(5)
-    times 5 db 0
+;     ;sequence registers(5)
+;     times 5 db 0
 
-    ;crtc registers(25)
-    times 25 db 0
+;     ;crtc registers(25)
+;     times 25 db 0
 
-    ;graphic's controller(GC) registers(9)
-    times 9 db 0
+;     ;graphic's controller(GC) registers(9)
+;     times 9 db 0
 
-    ;attribute controller(AC) registers(21)
-    times 21 db 0
+;     ;attribute controller(AC) registers(21)
+;     times 21 db 0
 
 
 VGAregister_data: db 0x63, 0x03, 0x01, 0x0F, 0x00, 0x0E, 0x5F, 0x4F, 0x50, 0x82, 0x54, 0x80, 0xBF, 0x1F, 0x00, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x9C, 0x0E, 0x8F, 0x28, 0x40, 0x96, 0xB9, 0xA3, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x05, 0x0F, 0xFF, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x41, 0x00, 0x0F, 0x00, 0x00
