@@ -2,6 +2,19 @@
 [bits 32]
 
 main:
+    ; mov ch, 0 ; y
+    ; mov cl, 1 ; x
+    ; mov dl, byte 'U'=222
+    ; mov dh, byte 0x5
+    ; call vga_textmode_setchar
+    ; call clear_textmode_buffer
+
+    ; mov ch, 0
+    ; mov cl, 0
+    ; mov ebx, test_string
+    ; mov dh, byte 0x5
+    ; call vga_textmode_setstring
+
     call write_regs
     call disable_cursor
     mov bx, 0
@@ -30,13 +43,11 @@ main:
     inc bx
     cmp bx, DISPLAY_height
     jl draw_lp_1
-    ; mov [0xA010], byte 0xff
-    ; jmp $
-    ; mov eax, end_addr
+
+    ; mov eax, MEM_START
     ; mov ebx, 0x80400000
     ; call kinit1
 
-    ; call draw_pixel
     ; mov [0xb8000], byte 'X'
 
 jmp $
@@ -47,6 +58,9 @@ jmp $
 %include "kernel/spinlock.asm"
 %include "kernel/string.asm"
 %include "kernel/graphics_drivers/vga_serial_driver.asm"
+; %include "kernel/graphics_drivers/vga_textmode_driver.asm"
+
+; test_string db 'test123', 0
 
 MEM_START equ $
 MEM_LEN equ 20*512 ; bytes
