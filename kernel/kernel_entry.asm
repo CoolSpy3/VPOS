@@ -2,38 +2,51 @@
 [bits 32]
 
 main:
-    call if_this_isnt_here_the_code_doesnt_work
-
-    ; mov ch, 0 ; y
-    ; mov cl, 1 ; x
-    ; mov dl, byte 'U'=222
-    ; mov dh, byte 0x5
-    ; call vga_textmode_setchar
-    call clear_textmode_buffer
-
-    mov ch, 0
+    call write_regs
+    call disable_cursor
+    mov bx, 0
     mov cl, 0
-    mov ebx, test_string
-    mov dh, byte 0x5
-    call vga_textmode_setstring
+    clr_lp_1:
+    mov ax, 0
+    clr_lp_2:
+    call draw_pixel
+    inc ax
+    cmp ax, DISPLAY_width
+    jl clr_lp_2
+    inc bx
+    cmp bx, DISPLAY_height
+    jl clr_lp_1
 
-    ; mov eax, MEM_START
+    mov bx, 0
+    draw_lp_1:
+    mov ax, bx
+    add ax, 60
+    mov cl, 1
+    call draw_pixel
+    mov ax, 260
+    sub ax, bx
+    mov cl, 2
+    call draw_pixel
+    inc bx
+    cmp bx, DISPLAY_height
+    jl draw_lp_1
+    ; mov [0xA010], byte 0xff
+    ; jmp $
+    ; mov eax, end_addr
     ; mov ebx, 0x80400000
     ; call kinit1
 
+    ; call draw_pixel
+    ; mov [0xb8000], byte 'X'
+
 jmp $
-
-if_this_isnt_here_the_code_doesnt_work:
-    ret
-
-test_string db 'test123', 0
 
 %include "kernel/kalloc.asm"
 %include "kernel/malloc.asm"
 %include "kernel/panic.asm"
 %include "kernel/spinlock.asm"
 %include "kernel/string.asm"
-%include "kernel/graphics_drivers/vga_textmode_driver.asm"
+%include "kernel/graphics_drivers/vga_serial_driver.asm"
 
 MEM_START equ $
 MEM_LEN equ 20*512 ; bytes

@@ -239,15 +239,15 @@ vpoke: ; bx: offset, cl: value
 
     vpoke_fp_0:
     vpoke_fp_1:
-    mov eax, 0xA0000000
+    mov eax, 0xA0000
     jmp vpoke_fp_end
 
     vpoke_fp_2:
-    mov eax, 0xB0000000
+    mov eax, 0xB0000
     jmp vpoke_fp_end
 
     vpoke_fp_3:
-    mov eax, 0xB8000000
+    mov eax, 0xB8000
     jmp vpoke_fp_end
 
     vpoke_fp_end:
