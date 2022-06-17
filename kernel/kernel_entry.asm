@@ -16,7 +16,7 @@ main:
     mov dh, byte 0x5
     call vga_textmode_setstring
 
-    ; mov eax, end_addr
+    ; mov eax, MEM_START
     ; mov ebx, 0x80400000
     ; call kinit1
 
@@ -36,7 +36,7 @@ MEM_LEN equ 20*512 ; bytes
 
 initial_memory_header:
     dd MEM_LEN ; length (size of free memory)
-    db 0 ; Not in use
+    db 0 ; Unallocated
     dd 0 ; No previous block
     dd 0 ; No next block
 
@@ -44,5 +44,5 @@ times MEM_LEN-BLOCK_HEADER_LENGTH db 0x00
 
 times 20*512 db 0x00
 
-; Must be last line of kernel
-end_addr equ $
+; End of memory
+MEM_END equ $
