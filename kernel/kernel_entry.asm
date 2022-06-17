@@ -2,12 +2,13 @@
 [bits 32]
 
 main:
+    call if_this_isnt_here_the_code_doesnt_work
+
     ; mov ch, 0 ; y
     ; mov cl, 1 ; x
     ; mov dl, byte 'U'=222
     ; mov dh, byte 0x5
     ; call vga_textmode_setchar
-
     call clear_textmode_buffer
 
     mov ch, 0
@@ -22,14 +23,17 @@ main:
 
 jmp $
 
+if_this_isnt_here_the_code_doesnt_work:
+    ret
+
+test_string db 'test123', 0
+
 %include "kernel/kalloc.asm"
 %include "kernel/malloc.asm"
 %include "kernel/panic.asm"
 %include "kernel/spinlock.asm"
 %include "kernel/string.asm"
 %include "kernel/graphics_drivers/vga_textmode_driver.asm"
-
-test_string db 'test123', 0
 
 MEM_START equ $
 MEM_LEN equ 20*512 ; bytes
