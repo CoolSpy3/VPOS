@@ -14,18 +14,7 @@ kernel_main:
 
     call VGA_write_regs
     call disable_cursor
-    mov bx, 0
-    mov cl, 0
-    clr_lp_1:
-    mov ax, 0
-    clr_lp_2:
-    call draw_pixel
-    inc ax
-    cmp ax, DISPLAY_width
-    jl clr_lp_2
-    inc bx
-    cmp bx, DISPLAY_height
-    jl clr_lp_1
+    call VGA_clear_screen
 
     mov bx, 0
     draw_lp_1:

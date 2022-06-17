@@ -279,6 +279,29 @@ disable_cursor:
     out dx, al
     ret
 
+VGA_clear_screen:
+    push ax
+    push bx
+    push cx
+
+    mov bx, 0
+    mov cl, 0
+    clr_lp_1:
+    mov ax, 0
+    clr_lp_2:
+    call draw_pixel
+    inc ax
+    cmp ax, DISPLAY_width
+    jl clr_lp_2
+    inc bx
+    cmp bx, DISPLAY_height
+    jl clr_lp_1
+
+    pop cx
+    pop bx
+    pop ax
+    ret
+
 VGA_seq_index equ 0x3c4
 VGA_seq_data equ 0x3c5
 VGA_crtc_index equ 0x3d4
