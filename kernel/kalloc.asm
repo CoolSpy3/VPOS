@@ -6,11 +6,11 @@ freerange:
     add eax, 4095
     and eax, 4096
 
-    kfree_loop:
+    .loop:
         call kfree
         add eax, 4096
         cmp eax, ebx
-        jle kfree_loop
+        jle .loop
 
     ret
 
@@ -38,21 +38,21 @@ kfree:
     pop eax
 
     cmp [use_lock], byte 0
-    je kfree_no_aquire
+    je .no_aquire
 
     mov si, slock
     call aquire
 
-kfree_no_aquire:
+    .no_aquire:
     lea ecx, [freelist]
     mov [freelist], ecx
 
     cmp [use_lock], byte 0
-    je kfree_no_release
+    je .no_release
 
     call release
 
-kfree_no_release:
+    .no_release:
     pop esi
     pop edi
     pop ecx
@@ -63,28 +63,28 @@ kalloc: ; allocates one 4096 byte page of memory
         ; also this function probably dosent work at the moment
     push esi
     cmp [use_lock], byte 0
-    je kalloc_cont
+    je .cont1
 
     mov esi, slock
     call aquire
 
-    kalloc_cont:
+    .cont1:
 
     mov ecx, [freelist] ; r = kmem.freelist;
     cmp ecx, 0 ; if(r) in c
-    je kalloc_cont1
+    je .cont2
 
     mov [freelist], ecx ; gets the next page(i think)
                       ; kmem.freelist = r->next;
 
-    kalloc_cont1:
+    .cont2:
 
     cmp [use_lock], byte 0
-    je kalloc_cont2
+    je .cont3
 
     call release
 
-    kalloc_cont2:
+    .cont3:
 
     pop esi
     ret

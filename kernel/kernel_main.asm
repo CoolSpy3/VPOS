@@ -1,7 +1,4 @@
-[org 0x1000]
-[bits 32]
-
-main:
+kernel_main:
     ; mov ch, 0 ; y
     ; mov cl, 1 ; x
     ; mov dl, byte 'U'=222
@@ -15,7 +12,7 @@ main:
     ; mov dh, byte 0x5
     ; call vga_textmode_setstring
 
-    call write_regs
+    call VGA_write_regs
     call disable_cursor
     mov bx, 0
     mov cl, 0
@@ -50,28 +47,7 @@ main:
 
     ; mov [0xb8000], byte 'X'
 
-jmp $
+    ret
 
-%include "kernel/kalloc.asm"
-%include "kernel/malloc.asm"
-%include "kernel/panic.asm"
-%include "kernel/spinlock.asm"
-%include "kernel/string.asm"
-%include "kernel/graphics_drivers/vga_serial_driver.asm"
-; %include "kernel/graphics_drivers/vga_textmode_driver.asm"
 
 ; test_string db 'test123', 0
-
-MEM_START equ $
-MEM_LEN equ 20*512 ; bytes
-
-initial_memory_header:
-    dd MEM_LEN ; length (size of free memory)
-    db 0 ; Unallocated
-    dd 0 ; No previous block
-    dd 0 ; No next block
-
-times MEM_LEN-BLOCK_HEADER_LENGTH db 0x00
-
-; End of memory
-MEM_END equ $

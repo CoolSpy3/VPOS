@@ -1,14 +1,14 @@
 pushcli:
     push eax
     cmp [ncli], byte 0
-    jne pushcli_disint
+    jne .disint
 
     pushfd
     pop eax
     and eax, 0x200
     mov [intea], eax
 
-pushcli_disint:
+    .disint:
         cli
         inc word [ncli]
         pop eax
@@ -28,14 +28,14 @@ popcli:
     js panic
 
     cmp [ncli], byte 0
-    jne popcli_return
+    jne .return
 
     cmp [intea], word 0
-    je popcli_return
+    je .return
 
     sti
 
-popcli_return:
+    .return:
     pop eax
     ret
 
@@ -45,12 +45,12 @@ aquire:
     cmp [esi], byte 0
     jne panic
 
-to_aquire:
+    .do_aquire:
 
-    mov eax, 1
-    lock xchg esi, eax
-    cmp [esi], byte 0
-    jne to_aquire
+        mov eax, 1
+        lock xchg [esi], eax
+        cmp [esi], byte 0
+        jne .do_aquire
 
     pop eax
     ret

@@ -1,25 +1,31 @@
-boot_section.bin:
-	nasm boot_section/boot_section.asm -i boot_section/ -f bin -o boot_section.bin
+-include bin/boot_section.d
+-include bin/kernel.d
 
-kernel_entry.bin:
-	nasm kernel/kernel_entry.asm -i boot_section/ -f bin -o kernel_entry.bin
+bin:
+	mkdir bin
 
-live-image:
-	cat boot_section.bin kernel_entry.bin > live-image
+bin/boot_section.bin: bin boot_section/boot_section.asm
+	nasm boot_section/boot_section.asm -i boot_section/ -f bin -o bin/boot_section.bin -M -MF bin/boot_section.d
+	nasm boot_section/boot_section.asm -i boot_section/ -f bin -o bin/boot_section.bin
 
-clean-up:
-	rm boot_section.bin
-	rm kernel_entry.bin
+bin/kernel.bin: bin kernel/kernel.asm
+	nasm kernel/kernel.asm -i kernel/ -f bin -o bin/kernel.bin -M -MF bin/kernel.d
+	nasm kernel/kernel.asm -i kernel/ -f bin -o bin/kernel.bin
 
-clear_old_image:
-ifneq (,$(wildcard ./live-image))
-	rm live-image
-endif
+bin/live-image: bin/boot_section.bin bin/kernel.bin
+	cat bin/boot_section.bin bin/kernel.bin > bin/live-image
 
-build: clear_old_image boot_section.bin kernel_entry.bin live-image clean-up
+.PHONY: build rebuild clean run debug
 
-run:
-	qemu-system-i386 -drive format=raw,file=live-image
+build: bin/live-image
 
-debug:
-	qemu-system-i386 -D ./log.txt -d guest_errors -drive format=raw,file=live-image
+rebuild: | clean build
+
+clean:
+	rm -rf bin
+
+run: bin/live-image
+	qemu-system-i386 -drive format=raw,file=bin/live-image
+
+debug: bin/live-image
+	qemu-system-i386 -D ./log.txt -d guest_errors -drive format=raw,file=bin/live-image

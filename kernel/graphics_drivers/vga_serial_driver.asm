@@ -96,7 +96,7 @@
 ;     ; pop cl
 ;     ret
 
-write_regs:
+VGA_write_regs:
     pushad
 
     mov dx, VGA_misc_write
@@ -110,7 +110,7 @@ write_regs:
     mov di, VGA_seq_data
     mov cl, 0
     mov ch, VGA_num_seq_regs
-    call write_reg_loop
+    call .loop
 
     ; unlock crtc registers
     mov dx, VGA_crtc_index
@@ -142,19 +142,19 @@ write_regs:
     mov di, VGA_crtc_data
     mov cl, 0
     mov ch, VGA_num_crtc_regs
-    call write_reg_loop
+    call .loop
 
     mov si, VGA_GC_index
     mov di, VGA_GC_data
     mov cl, 0
     mov ch, VGA_num_GC_regs
-    call write_reg_loop
+    call .loop
 
     mov si, VGA_AC_index
     mov di, VGA_AC_write
     mov cl, 0
     mov ch, VGA_num_AC_regs
-    call write_reg_loop_2
+    call .loop2
 
     mov dx, VGA_instat_read
     in al, dx
@@ -166,36 +166,36 @@ write_regs:
     popad
     ret
 
-write_reg_loop: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, ebx: start of VGAregister_data (will be incremented)
-    mov dx, si
-    mov al, cl
-    out dx, al
-    mov dx, di
-    mov al, [ebx]
-    out dx, al
+    .loop: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, ebx: start of VGAregister_data (will be incremented)
+        mov dx, si
+        mov al, cl
+        out dx, al
+        mov dx, di
+        mov al, [ebx]
+        out dx, al
 
-    inc ebx
-    inc cl
-    cmp cl, ch
-    jl write_reg_loop
-    ret
+        inc ebx
+        inc cl
+        cmp cl, ch
+        jl .loop
+        ret
 
-write_reg_loop_2: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, ebx: start of VGAregister_data (will be incremented)
-    mov dx, VGA_instat_read
-    in al, dx
+    .loop2: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, ebx: start of VGAregister_data (will be incremented)
+        mov dx, VGA_instat_read
+        in al, dx
 
-    mov dx, si
-    mov al, cl
-    out dx, al
-    mov dx, di
-    mov al, [ebx]
-    out dx, al
+        mov dx, si
+        mov al, cl
+        out dx, al
+        mov dx, di
+        mov al, [ebx]
+        out dx, al
 
-    inc ebx
-    inc cl
-    cmp cl, ch
-    jl write_reg_loop_2
-    ret
+        inc ebx
+        inc cl
+        cmp cl, ch
+        jl .loop2
+        ret
 
 draw_pixel: ; ax: x, bx: y, cl: color
     pusha
@@ -228,29 +228,28 @@ vpoke: ; bx: offset, cl: value
     and al, 3
 
     cmp al, 0
-    je vpoke_fp_0
+    je .switch0
     cmp al, 1
-    je vpoke_fp_1
+    je .switch1
     cmp al, 2
-    je vpoke_fp_2
+    je .switch2
     cmp al, 3
-    je vpoke_fp_3
-    jmp vpoke_fp_end
+    je .switch3
 
-    vpoke_fp_0:
-    vpoke_fp_1:
-    mov eax, 0xA0000
-    jmp vpoke_fp_end
+    .switch0:
+    .switch1:
+        mov eax, 0xA0000
+        jmp .end
 
-    vpoke_fp_2:
-    mov eax, 0xB0000
-    jmp vpoke_fp_end
+    .switch2:
+        mov eax, 0xB0000
+        jmp .end
 
-    vpoke_fp_3:
-    mov eax, 0xB8000
-    jmp vpoke_fp_end
+    .switch3:
+        mov eax, 0xB8000
+        jmp .end
 
-    vpoke_fp_end:
+    .end:
 
     call VGA_poke
 

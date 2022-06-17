@@ -1,12 +1,10 @@
-
-
 clear_textmode_buffer:
     pushad
 
     mov cl, 0 ; cols
     mov ch, 0 ; rows
 
-    vga_textmode_loop:
+    .loop:
 
         mov dl, byte ' '
         mov dh, 0x0
@@ -14,12 +12,12 @@ clear_textmode_buffer:
 
         inc cl
         cmp cl, 80
-        jl vga_textmode_loop
+        jl .loop
         mov cl, 0
 
         inc ch
         cmp ch, 25
-        jl vga_textmode_loop
+        jl .loop
 
 
     popad
@@ -50,7 +48,7 @@ vga_textmode_setstring:
     pushad
 
 
-    vga_textmode_stringloop:
+    .loop:
         mov dl, byte [ebx]
 
         call vga_textmode_setchar
@@ -59,19 +57,19 @@ vga_textmode_setstring:
 
         inc cl
         cmp cl, 80
-        jl vga_textmode_stringloop_again
+        jl .again
         mov cl, 0
 
         ; inc ch     ; This bit of code breaks the char placement for some reason, 
         ; cmp ch, 25 ; program(with this code segment uncommented) output: test{club_symbol}
-        ; jl vga_textmode_stringloop_end
+        ; jl .loop_end
 
-        vga_textmode_stringloop_again:
+        .again:
 
         cmp [ebx], byte 0
-        jne vga_textmode_stringloop
+        jne .loop
 
-    vga_textmode_stringloop_end:
+    .end:
 
     popad
     ret

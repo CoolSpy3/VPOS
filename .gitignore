@@ -1,4 +1,4 @@
 *.bin
 .vscode
-live-image
+bin
 log.txt
