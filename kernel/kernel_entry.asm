@@ -42,7 +42,5 @@ initial_memory_header:
 
 times MEM_LEN-BLOCK_HEADER_LENGTH db 0x00
 
-times 20*512 db 0x00
-
 ; End of memory
 MEM_END equ $
