@@ -53,10 +53,5 @@ idt_ptr:
     base dd 0x00
 
 idt_structure:
-    times 256 
-    dw 0x00 ; 4
-    dw 0x00
-    db 0x00 ; 2
-    db 0x00
-    dw 0x00 ; 2
+    times 512 dd 0x00
         
