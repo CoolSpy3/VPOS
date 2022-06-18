@@ -12,6 +12,7 @@ jmp $
 %include "panic.asm"
 %include "spinlock.asm"
 %include "MMU/memset.asm"
+%include "HAL/idt.asm"
 %include "graphics_drivers/vga_serial_driver.asm"
 %include "graphics_drivers/vga_textmode_driver.asm"
 
