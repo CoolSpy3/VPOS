@@ -28,5 +28,3 @@ gdt_descriptor:
 
 gdt_code_seg equ gdt_code - gdt_start
 gdt_data_seg equ gdt_data - gdt_start
-
-

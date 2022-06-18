@@ -4,35 +4,35 @@ disk_load: ;code taken from stack overflow user sep roland
     mov  dh, 0x00
     mov  cl, 0x02
 
-    next_group:
-        mov di, 5 ;give 5 chances for the sector to be read properly 
+    .next_group:
+        mov di, 5 ;give 5 chances for the sector to be read properly
                   ;before erroring.
 
-    again:
+    .again:
         mov ah, 0x02
         mov al, [sectors]
         int 0x013
-        jc retry
+        jc .retry
 
         sub [sectors], al ;
-        jz ready
+        jz .ready
 
         mov cl, 0x01
         xor dh, 1
-        jnz next_group
+        jnz .next_group
         inc ch
-        jmp next_group
-    
-    retry:
+        jmp .next_group
+
+    .retry:
         mov ah, 0x00
         int 0x13
         dec di
-        jnz again
+        jnz .again
         jmp disk_read_error
 
-    ready:
+    .ready:
         ret
-    
+
 
 disk_read_error:
 	mov si, disk_error_msg
