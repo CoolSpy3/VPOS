@@ -1,5 +1,7 @@
+ifeq ($(OS),Windows_NT)
 -include bin/boot_section.d
 -include bin/kernel.d
+endif
 
 bin:
 	mkdir bin
