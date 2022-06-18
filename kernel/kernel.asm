@@ -16,7 +16,7 @@ jmp $
 %include "graphics_drivers/vga_textmode_driver.asm"
 
 MEM_START equ $
-MEM_LEN equ 20*512 ; bytes
+MEM_LEN equ 20*512-MEM_START ; bytes
 
 initial_memory_header:
     dd MEM_LEN ; length (size of free memory)
