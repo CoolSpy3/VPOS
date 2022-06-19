@@ -26,7 +26,7 @@ malloc: ; eax: size, returns ptr
     mov [ebx], eax ; Our current block will be allocated to the requested size
     push ecx
     mov ecx, ebx
-    add ecx, edx
+    add ecx, eax
     mov [ecx], edx ; A new block will gain the remaining space
     mov [ecx+BLOCK_IN_USE_OFFSET], byte 0 ; It is unallocated
     mov [ecx+BLOCK_PREV_PTR_OFFSET], ebx ; Its previous block is our current block
