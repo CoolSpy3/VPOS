@@ -6,6 +6,13 @@ kernel_main:
     ; call vga_textmode_setchar
     call clear_textmode_buffer
 
+    mov eax, MEM_START
+    mov cl, 0
+    mov ch, 0
+    ; mov ebx, eax
+    mov dh, byte 0x5
+    call vga_textmode_showhex
+
     mov eax, 11
     call malloc
     mov [eax], byte '*'
@@ -19,6 +26,12 @@ kernel_main:
     mov [eax+8], byte '*'
     mov [eax+9], byte '*'
     mov [eax+10], byte 0
+
+    mov cl, 0
+    mov ch, 1
+    ; mov ebx, eax
+    mov dh, byte 0x5
+    call vga_textmode_showhex
 
     push eax
     mov eax, 12
@@ -38,7 +51,15 @@ kernel_main:
     mov [ebx+9], byte 'D'
     mov [ebx+10], byte 0
 
-    ; call free
+    xchg eax, ebx
+    mov cl, 0
+    mov ch, 2
+    ; mov ebx, eax
+    mov dh, byte 0x5
+    call vga_textmode_showhex
+    xchg eax, ebx
+
+    call free
     mov eax, 5
     call malloc
     mov [eax], byte '6'
@@ -47,11 +68,18 @@ kernel_main:
     mov [eax+3], byte '9'
     mov [eax+4], byte 0
 
-    mov ch, 0
     mov cl, 0
+    mov ch, 3
     ; mov ebx, eax
     mov dh, byte 0x5
-    call vga_textmode_setstring
+    call vga_textmode_showhex
+
+    mov eax, MEM_END
+    mov cl, 0
+    mov ch, 4
+    ; mov ebx, eax
+    mov dh, byte 0x5
+    call vga_textmode_showhex
 
     ; call VGA_write_regs
     ; call disable_cursor
