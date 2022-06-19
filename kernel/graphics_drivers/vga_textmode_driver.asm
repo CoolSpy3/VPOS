@@ -73,3 +73,54 @@ vga_textmode_setstring:
 
     popad
     ret
+
+vga_textmode_showhex: ; eax: val, cl: x, ch: y, dl: color
+    pushad
+
+    push ecx
+
+    mov ecx, 9
+
+    .loop:
+    call .readChar
+    shr eax, 4
+    sub ecx, 1
+
+    cmp ecx, 2
+    jae .loop
+
+    pop ecx
+
+    mov ebx, hex_string
+    call vga_textmode_setstring
+
+    popad
+    ret
+
+    .readChar:
+    push ax
+    and al, 0xF
+
+    cmp al, 0xA
+    jae .readChar2
+    add al, '0'
+    jmp .readChar_put
+
+    .readChar2:
+    add al, 'A'-0xA
+
+    .readChar_put:
+    mov [hex_string+ecx], al
+    pop ax
+    ret
+
+vga_texmode_showeaxandhang:
+    mov cl, 0
+    mov ch, 0
+    mov dh, byte 0x5
+    call vga_textmode_showhex
+    jmp $
+
+hex_string:
+    db '0x'
+    times 4*2+1 db 0
