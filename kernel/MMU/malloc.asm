@@ -12,7 +12,7 @@ malloc: ; eax: size, returns ptr
     jne .search_next_block ; Don't allocate an in-use block
 
     cmp [ebx], eax
-    ja .search_next_block ; We cannot allocate more memory than exists in a block
+    jb .search_next_block ; We cannot allocate more memory than exists in a block
 
     ; Allocate the memory
 
@@ -49,6 +49,7 @@ malloc: ; eax: size, returns ptr
     jmp .find_and_allocate_memory ; try to allocate the next block
 
 free: ; eax: ptr to memory
+    push ebx
     sub eax, BLOCK_HEADER_LENGTH
     mov [eax+BLOCK_IN_USE_OFFSET], byte 0 ; Flag the memory as not in use (free it)
     ; We could zero the memory, but we don't care about nonsense data or leaking info
@@ -61,17 +62,20 @@ free: ; eax: ptr to memory
     .merge_prev_block:
     mov ebx, [eax+BLOCK_PREV_PTR_OFFSET]
     cmp ebx, 0
-    je .return ; Skip if there is no prev block
+    je .free_return ; Skip if there is no prev block
     xchg eax, ebx ; Swap the registers so that the lower address (previous block) is in eax
     call .try_merge_blocks
+
+    .free_return: ; general return from free
+    pop ebx
     ret
 
     .try_merge_blocks: ; eax: first block (lower address), ebx: second block (higher address)
     ; If either block is allocated, just return
     cmp [eax+BLOCK_IN_USE_OFFSET], byte 0
-    jne .return
+    jne .try_return
     cmp [ebx+BLOCK_IN_USE_OFFSET], byte 0
-    jne .return
+    jne .try_return
 
     ; Otherwise, merge them
     push edx
@@ -91,7 +95,7 @@ free: ; eax: ptr to memory
 
     ; We could zero the header of the second block, but we don't care about nonsense data or leaking info
 
-    .return: ; general return (used throughout free)
+    .try_return: ; general return from try_merge_blocks
     ret
 
 BLOCK_HEADER_LENGTH equ 4+1+4+4 ; length (including header), in use, prev, next
