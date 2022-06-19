@@ -1,28 +1,16 @@
 idt_install:
-    pushad
-
-    mov al, 8
-    mov cl, 256
-    mul cl
-
-    sub ax, 1
-    mov [idt_ptr], ax
-
-    lea ebx, idt_structure
-    mov [idt_ptr + 2], ebx
 
     lidt [idt_ptr]
 
-    popad
     ret
 
-idt_setgate: ; cl: index, edx: base, si: selector, ch: flags
+idt_set_ISR: ; cl: index, edx: base, si: selector, ch: flags
     pushad
 
     mov ebx, idt_structure
     mov al, 8
     mul cl
-    add ebx, ax
+    add ebx, eax
 
     mov eax, edx
     and eax, 0xFFFF
@@ -38,7 +26,7 @@ idt_setgate: ; cl: index, edx: base, si: selector, ch: flags
     mov [ebx], si
     add ebx, 2
 
-    mov [ebx], 0
+    mov [ebx], byte 0
     inc ebx
 
     mov [ebx], ch
@@ -48,8 +36,8 @@ idt_setgate: ; cl: index, edx: base, si: selector, ch: flags
 
 
 idt_ptr:
-    limit dw 0x00
-    base dd 0x00
+    limit dw 8*256-1
+    base dd idt_structure
 
 idt_structure:
     times 512 dd 0x00

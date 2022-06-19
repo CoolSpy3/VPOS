@@ -10,7 +10,7 @@ jmp $
 %include "kernel_main.asm"
 %include "panic.asm"
 %include "spinlock.asm"
-; %include "HAL/idt.asm"
+%include "HAL/idt.asm"
 %include "MMU/kalloc.asm"
 %include "MMU/malloc.asm"
 %include "MMU/memset.asm"
