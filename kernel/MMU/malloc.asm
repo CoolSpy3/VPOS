@@ -1,5 +1,9 @@
 malloc: ; eax: size, returns ptr
     add eax, BLOCK_HEADER_LENGTH
+    cmp eax, BLOCK_MIN_SIZE
+    jae .allocate_memory
+    mov eax, BLOCK_MIN_SIZE
+    .allocate_memory:
     push ebx
     mov ebx, MEM_START
     call .find_and_allocate_memory
@@ -102,3 +106,5 @@ BLOCK_HEADER_LENGTH equ 4+1+4+4 ; length (including header), in use, prev, next
 BLOCK_IN_USE_OFFSET equ 4
 BLOCK_PREV_PTR_OFFSET equ 4+1
 BLOCK_NEXT_PTR_OFFSET equ 4+1+4
+
+BLOCK_MIN_SIZE equ BLOCK_HEADER_LENGTH + 4
