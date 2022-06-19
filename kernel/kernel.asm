@@ -6,13 +6,13 @@ main:
 
 jmp $
 
-%include "MMU/kalloc.asm"
 %include "kernel_main.asm"
-%include "MMU/malloc.asm"
 %include "panic.asm"
 %include "spinlock.asm"
-%include "MMU/memset.asm"
 %include "HAL/idt.asm"
+%include "MMU/kalloc.asm"
+%include "MMU/malloc.asm"
+%include "MMU/memset.asm"
 %include "graphics_drivers/vga_serial_driver.asm"
 %include "graphics_drivers/vga_textmode_driver.asm"
 
