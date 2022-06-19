@@ -23,15 +23,16 @@ malloc: ; eax: size, returns ptr
     jbe .do_allocate_memory ; If there is not enough space to split the block, allocate the whole block
 
     ; Otherwise, create two smaller blocks
-    mov [ebx], ax ; Our current block will be allocated to the requested size
+    mov [ebx], eax ; Our current block will be allocated to the requested size
     push ecx
     mov ecx, ebx
-    add ecx, eax
+    add ecx, edx
     mov [ecx], edx ; A new block will gain the remaining space
     mov [ecx+BLOCK_IN_USE_OFFSET], byte 0 ; It is unallocated
     mov [ecx+BLOCK_PREV_PTR_OFFSET], ebx ; Its previous block is our current block
     mov edx, [ebx+BLOCK_NEXT_PTR_OFFSET]
     mov [ecx+BLOCK_NEXT_PTR_OFFSET], edx ; Its next block is the block following our current block
+    mov [ebx+BLOCK_NEXT_PTR_OFFSET], ecx ; Our next block is the new block
     pop ecx
 
     .do_allocate_memory:

@@ -1,9 +1,8 @@
-
 idt_install:
     pushad
 
     mov al, 8
-    mov cl, 256 
+    mov cl, 256
     mul cl
 
     sub ax, 1
@@ -17,7 +16,7 @@ idt_install:
     popad
     ret
 
-idt_setgate:; cl: index, edx: base, si: selector, ch: flags
+idt_setgate: ; cl: index, edx: base, si: selector, ch: flags
     pushad
 
     mov ebx, idt_structure
@@ -54,4 +53,3 @@ idt_ptr:
 
 idt_structure:
     times 512 dd 0x00
-        
