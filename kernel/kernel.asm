@@ -11,6 +11,7 @@ jmp $
 %include "panic.asm"
 %include "spinlock.asm"
 %include "HAL/idt.asm"
+%include "HAL/pic.asm"
 %include "MMU/kalloc.asm"
 %include "MMU/malloc.asm"
 %include "MMU/memset.asm"
