@@ -1,0 +1,14 @@
+(global <in-compiler>) return equ 0
+
+<label> equ <data>
+<label> pt <data>
+<label> ptf <label1> <label2> <label3>
+
+end
+<label> if <operators>
+<label> if <operators> else <label> (if <operators>)
+<label> jmp <label4> <label5> <label6>
+<label> while <operators>
+return equ <data>
+return pt <data>
+return

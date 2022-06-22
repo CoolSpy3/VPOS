@@ -108,12 +108,6 @@ kernel_main:
     ; cmp bx, DISPLAY_height
     ; jl draw_lp_1
 
-    ; mov eax, MEM_START
-    ; mov ebx, 0x80400000
-    ; call kinit1
-
-    ; mov [0xb8000], byte 'X'
-
     ret
 
 
