@@ -24,11 +24,12 @@ substr: ; copies esi to a new string retuned in edi (ecx bytes starting from idx
     cld
     rep movsb
     pop edi
-
-    add edi, ecx
-    mov [edi], byte 0
-
     pop ecx
     pop eax
+
+    add edi, ecx
+    sub edi, eax
+    mov [edi], byte 0
+    
     pop esi
     ret
