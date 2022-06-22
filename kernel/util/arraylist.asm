@@ -27,37 +27,37 @@ arraylist_get: ; eax: ptr to arraylist, ebx: idx, returns val
 arraylist_add: ; eax: ptr to arraylist, ebx: val
     push edx
 
-    ; mov edx, [eax]
-    ; cmp edx, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
-    ; jmp .add
+    mov edx, [eax]
+    cmp edx, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
+    jmp .add
 
-    ; push esi
-    ; push edi
-    ; push eax
-    ; push ecx
+    push esi
+    push edi
+    push eax
+    push ecx
 
-    ; mov edx, eax
-    ; add [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET], dword ARRAYLIST_DEFAULT_SIZE
-    ; mov eax, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
-    ; shl eax, 2
-    ; add eax, ARRAYLIST_DEFAULT_DATA_LENGTH
-    ; call malloc
-    ; mov esi, [edx+ARRAYLIST_DATA_OFFSET]
-    ; mov edi, eax
-    ; mov ecx, [edx]
-    ; cld
-    ; rep movsd
-    ; pop ecx
-    ; pop eax
+    mov edx, eax
+    add [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET], dword ARRAYLIST_DEFAULT_SIZE
+    mov eax, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
+    shl eax, 2
+    add eax, ARRAYLIST_DEFAULT_DATA_LENGTH
+    call malloc
+    mov esi, [edx+ARRAYLIST_DATA_OFFSET]
+    mov edi, eax
+    mov ecx, [edx]
+    cld
+    rep movsd
+    pop ecx
+    pop eax
 
-    ; mov eax, [eax+ARRAYLIST_DATA_OFFSET]
-    ; call free
-    ; mov [edx+ARRAYLIST_DATA_OFFSET], edi
+    mov eax, [eax+ARRAYLIST_DATA_OFFSET]
+    call free
+    mov [edx+ARRAYLIST_DATA_OFFSET], edi
 
-    ; pop edi
-    ; pop esi
+    pop edi
+    pop esi
 
-    ; .add:
+    .add:
     mov edx, [eax]
     shl edx, 2
     add edx, [eax+ARRAYLIST_DATA_OFFSET]
