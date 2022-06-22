@@ -108,7 +108,33 @@ kernel_main:
     ; cmp bx, DISPLAY_height
     ; jl draw_lp_1
 
+
+    call arraylist_new
+
+    mov ebx, test_string
+
+    mov cl, 0
+
+    .loop:
+        call arraylist_add
+        
+        inc cl
+        cmp cl, 20
+        jne .loop
+
+
+    mov ebx, 15
+    call arraylist_get
+
+    mov cx, 0x700
+    call vga_textmode_setstring
+
+
+    .return:
+
     ret
 
 
-; test_string db 'test123', 0
+test_string db 'test12323', 0
+fail_string db 'fail', 0
+works db 'works', 0

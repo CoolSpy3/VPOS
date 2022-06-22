@@ -9,6 +9,7 @@ jmp $
 
 %include "kernel_main.asm"
 %include "panic.asm"
+%include "string.asm"
 %include "spinlock.asm"
 %include "HAL/idt.asm"
 %include "HAL/pic.asm"
