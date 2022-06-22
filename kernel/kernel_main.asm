@@ -109,29 +109,29 @@ kernel_main:
     ; jl draw_lp_1
 
 
-    ; call arraylist_new
+    call arraylist_new
 
-    ; mov ebx, test_string
+    mov ebx, test_string
 
-    ; mov cl, 0
+    mov cl, 0
 
-    ; .loop:
-    ;     call arraylist_add
+    .loop:
+        call arraylist_add
         
-    ;     inc cl
-    ;     cmp cl, 20
-    ;     jne .loop
+        inc cl
+        cmp cl, 20
+        jne .loop
 
 
-    ; mov ebx, 15
-    ; call arraylist_get
+    mov ebx, 15
+    call arraylist_get
 
-    mov esi, test_string
-    mov eax, 2
-    mov ecx, 5
-    call substr
+    ; mov esi, test_string
+    ; mov eax, 2
+    ; mov ecx, 5
+    ; call substr
 
-    mov ebx, edi
+    ; mov ebx, edi
     mov cx, 0x700
     call vga_textmode_setstring
 
