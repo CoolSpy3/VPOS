@@ -35,6 +35,9 @@ idt_set_ISR: ; cl: index, edx: base, si: selector, ch: flags
     ret
 
 
+I86_IDT_DESC_PRESENT equ 0x80
+I86_IDT_DESC_BIT32 equ 0x0e
+
 idt_ptr:
     limit dw 8*256-1
     base dd idt_structure

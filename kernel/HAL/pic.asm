@@ -93,6 +93,30 @@ pic_send: ;al: command, ch: pic number, cl: command(not 1) or data(1)
     popa
     ret
 
+pic_interupt_done: ;cl: idt index
+    pusha
+
+    cmp cl, 16
+    jg .return
+
+    cmp cl, 8
+    jnge .end
+
+    mov al, I86_PIC_OCW2_MASK_EOI
+    mov ch, 1
+    mov cl, 0
+    call pic_send
+
+    .end:
+    mov al, I86_PIC_OCW2_MASK_EOI
+    mov ch, 0
+    mov cl, 0
+    call pic_send
+
+    .return:
+    popa
+    ret
+
 
 I86_PIC1_REG_COMMAND equ 0x20
 I86_PIC1_REG_STATUS	equ 0x20
@@ -114,3 +138,5 @@ I86_PIC_ICW1_IC4_EXPECT equ 1
 I86_PIC_ICW1_INIT_YES equ 0x10
 I86_PIC_ICW4_MASK_UPM equ 0x1
 I86_PIC_ICW4_UPM_86MODE equ 1
+
+I86_PIC_OCW2_MASK_EOI equ 0x20

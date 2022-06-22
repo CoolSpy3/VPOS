@@ -1,4 +1,8 @@
 kernel_main:
+
+    call idt_install
+    call pic_init
+
     ; mov ch, 0 ; y
     ; mov cl, 1 ; x
     ; mov dl, byte 'U'=222
