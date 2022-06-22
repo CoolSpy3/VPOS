@@ -48,6 +48,7 @@ arraylist_add: ; eax: ptr to arraylist, ebx: val
     mov esi, [edx+ARRAYLIST_DATA_OFFSET]
     mov edi, eax
     mov ecx, [edx]
+    cld
     rep movsd
     pop ecx
     pop eax
