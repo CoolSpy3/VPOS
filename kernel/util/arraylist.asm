@@ -50,9 +50,12 @@ arraylist_add: ; eax: ptr to arraylist, ebx: val
     pop ecx
     pop eax
 
+    push eax
     mov eax, [eax+ARRAYLIST_DATA_OFFSET]
     call free
-    mov [edx+ARRAYLIST_DATA_OFFSET], edi
+    pop eax
+
+    mov [eax+ARRAYLIST_DATA_OFFSET], edi
 
     pop edi
     pop esi
