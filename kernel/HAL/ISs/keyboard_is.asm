@@ -8,8 +8,6 @@ keyboard_install_is:
     or ch, I86_IDT_DESC_BIT32
     call idt_set_ISR
 
-
-
     popad
     ret
 

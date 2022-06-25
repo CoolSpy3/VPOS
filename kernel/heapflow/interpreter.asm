@@ -2,20 +2,13 @@
 heapflow_main:
     call parsehf_file_data
 
-parsehf_file_data: ;ebx: file data pointer
-    pushad
-    .loop:
+parsehf_file_data: ;esi: file data pointer ; eax: arraylist pointer
+    push edi
 
-        .sub_loop:
-        
+    mov edi, byte 0x0a
+    call split_string
 
-
-
-        cmp [ebx], byte 0
-        jne .loop
-
-
-    call malloc
-
-    popad
+    
+    pop edi
+    ret
     
