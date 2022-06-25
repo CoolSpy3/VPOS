@@ -44,7 +44,7 @@ hashmap_get_addr: ; eax: ptr to hashmap, ebx: key, returns ptr to value
 
     .found:
     mov ebx, eax
-    jmp done
+    jmp .done
 
 hashmap_get: ; eax: ptr to hashmap, ebx: key, returns value
     call hashmap_get_addr
@@ -54,23 +54,63 @@ hashmap_get: ; eax: ptr to hashmap, ebx: key, returns value
     .done:
     ret
 
-hashmap_put: ; eax: ptr to hashmap, ebx: key, edx: val
+hashmap_put: ; eax: ptr to hashmap, ebx: key (ptr to string), edx: val
+    call hash_string
+    call hashmap_put_data
+    ret
+
+hashmap_put_data: ; eax: ptr to hashmap, ebx: key, edx: val
+    push ecx
+
+    push ebx
     call hashmap_get_addr
-    cmp ebx, 0
+    mov ecx, ebx
+    pop ebx
+    cmp ecx, 0
     jne .do_put
 
-    cmp [eax], [eax+HASHMAP_ALLOCATED_SIZE_OFFSET]
+    mov ecx, [eax]
+    cmp ecx, [eax+HASHMAP_ALLOCATED_SIZE_OFFSET]
     jb .select_next_val
 
+    push esi
+    push edi
+    push eax
+
+    mov ecx, eax
+    add [eax+HASHMAP_ALLOCATED_SIZE_OFFSET], dword HASHMAP_DEFAULT_SIZE
+    mov eax, [eax+HASHMAP_ALLOCATED_SIZE_OFFSET]
+    shl eax, 3
+    add eax, HASHMAP_DEFAULT_DATA_LENGTH
+    call malloc
+    mov esi, [edx+HASHMAP_DATA_OFFSET]
+    mov edi, eax
+    mov ecx, [edx]
+    shl ecx, 1
+    cld
+    rep movsd
+    pop eax
+
+    push eax
+    mov eax, [eax+HASHMAP_DATA_OFFSET]
+    call free
+    pop eax
+
+    mov [eax+HASHMAP_DATA_OFFSET], edi
+
+    pop edi
+    pop esi
+
     .select_next_val:
-    push edx
-    mov edx, [edx]
-    shl edx, 3
-    add edx, [eax+HASHMAP_DATA_OFFSET]
-    
+    mov ecx, [eax]
+    shl ecx, 3
+    add ecx, [eax+HASHMAP_DATA_OFFSET]
 
     .do_put:
-    mov [ebx], edx
+    mov [ecx], ebx
+    mov [ecx+4], edx
+
+    pop ecx
     ret
 
 hashmap_free: ; eax: ptr to hashmap
@@ -81,9 +121,40 @@ hashmap_free: ; eax: ptr to hashmap
     call free
     ret
 
+; Implementation of sdbm (see http://www.cse.yorku.ca/~oz/hash.html)
+hash_string: ; eax: ptr to string, ebx: returns hash
+    push eax
+    push ecx
+    push edx
+
+    mov ebx, 0
+
+    .loop:
+    cmp [eax], byte 0
+    je .done
+
+    mov ecx, ebx
+    mov edx, [eax]
+    shl ecx, 6
+    add edx, ecx
+    shl ecx, 10
+    add edx, ecx
+    sub edx, ebx
+    mov ebx, edx
+
+    inc eax
+    jmp .loop
+
+
+    .done:
+    pop edx
+    pop ecx
+    pop eax
+    ret
+
 
 HASHMAP_LENGTH equ 4 + 4 + 4 ; (size + allocated size + data ptr)
 HASHMAP_ALLOCATED_SIZE_OFFSET equ 4 + 4 ; (size + data ptr)
 HASHMAP_DATA_OFFSET equ 4 + 4
 HASHMAP_DEFAULT_SIZE equ 10
-HASHMAP_DEFAULT_DATA_LENGTH equ ARRAYLIST_DEFAULT_SIZE * 8
+HASHMAP_DEFAULT_DATA_LENGTH equ HASHMAP_DEFAULT_SIZE * 8
