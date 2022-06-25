@@ -78,14 +78,14 @@ kernel_main:
     ; mov dh, byte 0x5
     ; call vga_textmode_showhex
 
-    mov eax, test_string2
-    call hash_string
-    mov eax, ebx
-    mov cl, 0
-    mov ch, 4
-    ; mov ebx, eax
-    mov dh, byte 0x5
-    call vga_textmode_showhex
+    ; mov eax, test_string2
+    ; call hash_string
+    ; mov eax, ebx
+    ; mov cl, 0
+    ; mov ch, 4
+    ; ; mov ebx, eax
+    ; mov dh, byte 0x5
+    ; call vga_textmode_showhex
 
     ; call VGA_write_regs
     ; call disable_cursor
@@ -119,7 +119,6 @@ kernel_main:
 
     ; .loop:
     ;     call arraylist_add
-        
     ;     inc cl
     ;     cmp cl, 20
     ;     jne .loop
@@ -137,11 +136,35 @@ kernel_main:
     ; mov cx, 0x700
     ; call vga_textmode_setstring
 
+    mov esi, test_split
+    mov bl, byte '.'
+    call split_string
+    mov ebx, 0
+    call arraylist_get
+    mov cx, 0x000
+    mov dh, 5
+    call vga_textmode_setstring
+    mov ebx, 1
+    call arraylist_get
+    mov cx, 0x100
+    mov dh, 5
+    call vga_textmode_setstring
+    mov ebx, 2
+    call arraylist_get
+    mov cx, 0x200
+    mov dh, 5
+    call vga_textmode_setstring
+    mov ebx, 3
+    call arraylist_get
+    mov cx, 0x300
+    mov dh, 5
+    call vga_textmode_setstring
 
     .return:
 
     ret
 
+test_split db 'a.bb.ccc.dddd', 0
 test_string2 db 'Password', 0
 
 test_string db 'test12323', 0

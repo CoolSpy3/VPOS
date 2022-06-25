@@ -36,37 +36,55 @@ substr: ; copies esi to a new string retuned in edi (ecx bytes starting from idx
     ret
 
 
-split_string: ;esi: string address, eax: returns pointer to arraylist, edi: split condition 
-    push edx
-    push ebx
+split_string: ; esi: string address, eax: returns pointer to arraylist, bl: split condition
+    push bx
     push ecx
+    push edx
+    push esi
+    push edi
 
-    mov edx, 0 ; end index
-    mov ebx, 0 ; start
-    mov ecx, esi ; end address
+    mov edx, esi ; current char position
+
+    mov ecx, 0 ; length
 
     call arraylist_new ; eax pointer to arraylist
 
     .loop:
 
-        cmp [ecx], edi
+        cmp [edx], bl
         jne .loop_end
 
+        .found:
         push eax
-        mov eax, ebx
+        mov eax, 0
         call substr
         pop eax
 
+        push ebx
         mov ebx, edi
         call arraylist_add
-        mov ebx, edx ; mov start, end
+        pop ebx
+
+        inc edx
+        mov esi, edx
+        mov ecx, 0
+
+        cmp [esi], byte 0
+        je .done
+        jmp .loop
 
         .loop_end:
-        inc edx
         inc ecx
-        cmp [ecx], byte 0
-        jne .loop
+        inc edx
+        cmp [edx], byte 0
+        je .found
+        jmp .loop
 
+    .done:
+
+    pop edi
+    pop esi
     pop edx
-    pop ebx
     pop ecx
+    pop bx
+    ret

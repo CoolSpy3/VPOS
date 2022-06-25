@@ -3,12 +3,12 @@ heapflow_main:
     call parsehf_file_data
 
 parsehf_file_data: ;esi: file data pointer ; eax: arraylist pointer
-    push edi
+    push bx
 
-    mov edi, byte 0x0a
+    mov bl, byte 0x0a
     call split_string
 
     
-    pop edi
+    pop bx
     ret
     
