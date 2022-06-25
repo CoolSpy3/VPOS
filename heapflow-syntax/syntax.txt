@@ -5,6 +5,10 @@
 <label> ptf <label1> <label2> <label3>
 
 end
+<label> lpt <data>
+<label> lptf <label1> <label2> <label3>
+
+end
 <label> if <operators>
 <label> if <operators> else <label> (if <operators>)
 <label> jmp <label4> <label5> <label6>
@@ -12,3 +16,6 @@ end
 return equ <data>
 return pt <data>
 return
+int <value> ax=<value> bx=<value> cx=<value> dx=<value>
+inc <label>
+dec <label>
