@@ -62,7 +62,6 @@ malloc: ; eax: size, returns ptr
     ret
 
 free: ; eax: ptr to memory
-    ret
     push ebx
     sub eax, BLOCK_HEADER_LENGTH
     mov [eax+BLOCK_IN_USE_OFFSET], byte 0 ; Flag the memory as not in use (free it)
