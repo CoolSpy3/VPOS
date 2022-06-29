@@ -8,9 +8,8 @@ malloc: ; eax: size, returns ptr
     ja panic
 
     push ebx
-    ; mov ebx, [HEAP_PTR]
-    ; add [HEAP_PTR], eax
-    mov ebx, MEM_START
+    mov ebx, [HEAP_PTR]
+    add [HEAP_PTR], eax
     call .find_and_allocate_memory
     pop ebx
     add eax, BLOCK_HEADER_LENGTH
