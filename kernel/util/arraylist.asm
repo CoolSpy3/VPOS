@@ -29,7 +29,7 @@ arraylist_add: ; eax: ptr to arraylist, ebx: val
 
     mov edx, [eax]
     cmp edx, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
-    jmp .add
+    jb .add
 
     push esi
     push edi
@@ -40,13 +40,14 @@ arraylist_add: ; eax: ptr to arraylist, ebx: val
     add [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET], dword ARRAYLIST_DEFAULT_SIZE
     mov eax, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
     shl eax, 2
-    add eax, ARRAYLIST_DEFAULT_DATA_LENGTH
     call malloc
     mov esi, [edx+ARRAYLIST_DATA_OFFSET]
     mov edi, eax
     mov ecx, [edx]
+    push edi
     cld
     rep movsd
+    pop edi
     pop ecx
     pop eax
 
