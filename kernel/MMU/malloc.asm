@@ -8,8 +8,7 @@ malloc: ; eax: size, returns ptr
     ja panic
 
     push ebx
-    mov ebx, [HEAP_PTR]
-    add [HEAP_PTR], eax
+    mov ebx, MEM_START
     call .find_and_allocate_memory
     pop ebx
     add eax, BLOCK_HEADER_LENGTH
@@ -40,7 +39,10 @@ malloc: ; eax: size, returns ptr
     mov [ecx+BLOCK_PREV_LENGTH_OFFSET], ax
     mov [ecx+BLOCK_IN_USE_OFFSET], byte 0 ; It is unallocated
     add ecx, edx
+    cmp ecx, MEM_END
+    jae .skip_link_prev_of_next_block
     mov [ecx+BLOCK_PREV_LENGTH_OFFSET], dx ; The block after the new block has the new block as its previous
+    .skip_link_prev_of_next_block:
     pop ecx
 
     .do_allocate_memory:
@@ -66,11 +68,6 @@ free: ; eax: ptr to memory
     sub eax, BLOCK_HEADER_LENGTH
     mov [eax+BLOCK_IN_USE_OFFSET], byte 0 ; Flag the memory as not in use (free it)
     ; We could zero the memory, but we don't care about nonsense data or leaking info
-
-    cmp [HEAP_PTR], eax
-    jb .free
-    mov [HEAP_PTR], eax
-    .free:
 
     mov ebx, 0
     mov bx, [eax]
@@ -126,7 +123,6 @@ free: ; eax: ptr to memory
     ret
 
 
-HEAP_PTR dd MEM_START
 BLOCK_HEADER_LENGTH equ 2+2+1 ; length (including header), in use
 BLOCK_PREV_LENGTH_OFFSET equ 2
 BLOCK_IN_USE_OFFSET equ 2+2

@@ -1,12 +1,15 @@
 (global <in-compiler>) return equ 0
+(params lpt [<label4> <label5> <label6>])
 
 <label> equ <data>
 <label> pt <data>
 <label> ptf <label1> <label2> <label3>
+(params lpt [<label4> <label5> <label6>])
 
 end
 <label> lpt <data>
 <label> lptf <label1> <label2> <label3>
+(params lpt [<label4> <label5> <label6>])
 
 end
 <label> if <operators>
@@ -19,3 +22,9 @@ return
 int <value> ax=<value> bx=<value> cx=<value> dx=<value>
 inc <label>
 dec <label>
+dela <label>
+delf <label>
+break
+continue
+str pt "hi" (equivalent to str pt ['h' 'i' 0])
+dela str

@@ -286,16 +286,16 @@ VGA_clear_screen:
 
     mov bx, 0
     mov cl, 0
-    clr_lp_1:
+    .clr_lp_1:
     mov ax, 0
-    clr_lp_2:
+    .clr_lp_2:
     call draw_pixel
     inc ax
     cmp ax, DISPLAY_width
-    jl clr_lp_2
+    jl .clr_lp_2
     inc bx
     cmp bx, DISPLAY_height
-    jl clr_lp_1
+    jl .clr_lp_1
 
     pop cx
     pop bx

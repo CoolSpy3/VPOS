@@ -35,7 +35,6 @@ substr: ; copies esi to a new string retuned in edi (ecx bytes starting from idx
     pop esi
     ret
 
-
 split_string: ; esi: string address, eax: returns pointer to arraylist, bl: split condition
     push bx
     push ecx
