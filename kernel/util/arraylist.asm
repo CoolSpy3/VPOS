@@ -99,7 +99,8 @@ arraylist_copy: ; eax: ptr to arraylist, ebx: returns ptr to new arraylist
     cld
 
     push eax
-    call arraylist_new
+    mov eax, ARRAYLIST_LENGTH
+    call malloc
     mov ebx, eax
     pop eax
 

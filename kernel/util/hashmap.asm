@@ -160,7 +160,8 @@ hashmap_copy: ; eax: ptr to hashmap, ebx: returns ptr to new hashmap
     cld
 
     push eax
-    call hashmap_new
+    mov eax, HASHMAP_LENGTH
+    call malloc
     mov ebx, eax
     pop eax
 
