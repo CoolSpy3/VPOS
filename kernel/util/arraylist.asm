@@ -91,6 +91,39 @@ arraylist_free: ; eax: ptr to arraylist
     call free
     ret
 
+arraylist_copy: ; eax: ptr to arraylist, ebx: returns ptr to new arraylist
+    push esi
+    push edi
+    push ecx
+
+    cld
+
+    push eax
+    call arraylist_new
+    mov ebx, eax
+    pop eax
+
+    mov esi, eax
+    mov edi, ebx
+    mov ecx, ARRAYLIST_LENGTH
+    rep movsb
+
+    push eax
+    mov eax, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
+    shl eax, 2
+    mov ecx, eax ; This will be used for the next memcpy
+    call malloc
+    mov edi, eax ; This will be used for the next memcpy
+    mov [ebx+ARRAYLIST_DATA_OFFSET], eax
+    pop eax
+
+    mov esi, [eax+ARRAYLIST_DATA_OFFSET]
+    rep movsb
+
+    pop ecx
+    pop edi
+    pop esi
+    ret
 
 ARRAYLIST_LENGTH equ 4 + 4 + 4 ; (size + allocated size + data ptr)
 ARRAYLIST_ALLOCATED_SIZE_OFFSET equ 4 ; (size + data ptr)

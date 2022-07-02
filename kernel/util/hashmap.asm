@@ -152,6 +152,40 @@ hash_string: ; eax: ptr to string, ebx: returns hash
     pop eax
     ret
 
+hashmap_copy: ; eax: ptr to hashmap, ebx: returns ptr to new hashmap
+    push esi
+    push edi
+    push ecx
+
+    cld
+
+    push eax
+    call hashmap_new
+    mov ebx, eax
+    pop eax
+
+    mov esi, eax
+    mov edi, ebx
+    mov ecx, HASHMAP_LENGTH
+    rep movsb
+
+    push eax
+    mov eax, [eax+HASHMAP_ALLOCATED_SIZE_OFFSET]
+    shl eax, 3
+    mov ecx, eax ; This will be used for the next memcpy
+    call malloc
+    mov edi, eax ; This will be used for the next memcpy
+    mov [ebx+HASHMAP_DATA_OFFSET], eax
+    pop eax
+
+    mov esi, [eax+HASHMAP_DATA_OFFSET]
+    rep movsb
+
+    pop ecx
+    pop edi
+    pop esi
+    ret
+
 
 HASHMAP_LENGTH equ 4 + 4 + 4 ; (size + allocated size + data ptr)
 HASHMAP_ALLOCATED_SIZE_OFFSET equ 4 + 4 ; (size + data ptr)
