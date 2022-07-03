@@ -481,6 +481,8 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
 
         call hashmap_put
 
+        call free_ebx
+
         jmp .done
 
     .pt:
@@ -497,6 +499,8 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
 
         call hashmap_put
 
+        call free_ebx
+
         jmp .done
 
     .ptf:
@@ -512,6 +516,8 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
         pop ebx
 
         call hashmap_put
+
+        call free_ebx
 
         jmp .done
 
@@ -530,6 +536,8 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
         pop ebx
 
         call hashmap_put
+
+        call free_ebx
 
         mov ebx, edx
 
@@ -557,6 +565,8 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
 
         call hashmap_put
 
+        call free_ebx
+
         mov ebx, edx
 
         pop edx
@@ -574,6 +584,11 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
         push eax
         mov eax, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
         call heapflow_resolve_argument_i
+        pop eax
+
+        push eax
+        mov eax, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+        call free
         pop eax
 
         push ebx
@@ -612,7 +627,16 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
 
         .skip_loop:
 
-        mov ebx, [edx]
+        push eax
+        mov eax, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+        call heapflow_resolve_argument_i
+        pop eax
+
+        push eax
+        mov eax, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+        call free
+        pop eax
+
         mov edx, ecx
 
         call heapflow_function_call_with_params
@@ -629,6 +653,11 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
         push eax
         mov eax, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
         call heapflow_resolve_argument_i
+        pop eax
+
+        push eax
+        mov eax, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+        call free
         pop eax
 
         .while_loop:
@@ -662,6 +691,8 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
         pop bx
 
         call hashmap_put
+
+        call free_ebx
 
         jmp .done
 
@@ -716,6 +747,13 @@ str_len_gr: ; Put string addr in ebx, length returned in ecx
     mov ecx, eax
 
     pop edi
+    pop eax
+    ret
+
+free_ebx: ; ebx: will be freed
+    push eax
+    mov eax, ebx
+    call free
     pop eax
     ret
 
