@@ -63,8 +63,7 @@ heapflow_parse_stream: ; ebx: ptr to getLine function, ecx: returns flags
         je .done
 
         call heapflow_parse_line
-        cmp ecx, 0
-        jne .done
+        jecxz .done
         jmp .loop
 
     .done:
@@ -730,12 +729,210 @@ heapflow_resolve_argument: ; eax: ptr to line (will be updated to point to n < '
     ret
 
 heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n < ' '), ebx: returns val, edx: ptr to interpreter
+    call heapflow_skip_spaces
+
+    cmp [eax], byte '"'
+    je .string
+
+    cmp [eax], byte '{'
+    je .array
+
+    call heapflow_resolve_argument
+    push eax
+    mov eax, 4
+    call malloc
+    mov [eax], ebx
+    mov ebx, eax
+    pop eax
     ret
+
+    .string:
+        inc eax
+
+        push eax
+        push edi
+        mov edi, eax
+        call str_len
+        call malloc ; Malloc a buffer for temp string (this will always be larger than the string and is more efficient than arraylist)
+        mov ebx, eax
+        pop edi
+        pop eax
+
+        push ecx
+        push ebx
+
+        mov ecx, 0
+
+        .string_loop:
+            cmp [eax], byte '"'
+            je .string_done
+
+            cmp [eax], byte '\\'
+            je .string_escape
+
+            push dx
+            mov dl, [eax]
+            mov [ebx], dl
+            pop dx
+
+            inc eax
+            inc ebx
+            inc ecx
+
+            jmp .string_loop
+
+            .string_escape:
+                inc eax
+                inc ebx
+                inc ecx
+
+                cmp [eax], byte '\\'
+                je .string_escape_backslash
+
+                cmp [eax], byte '"'
+                je .string_escape_string
+
+                cmp [eax], byte 'n'
+                je .string_escape_newline
+
+                cmp [eax], byte 't'
+                je .string_escape_tab
+
+                cmp [eax], byte 'r'
+                je .string_escape_carrage_return
+
+                ; Unknown escape code :/
+
+                mov [ebx-1], byte ' '
+                jmp .string_loop
+
+                .string_escape_backslash:
+                    mov [ebx-1], byte '\\'
+                    jmp .string_loop
+
+                .string_escape_string:
+                    mov [ebx-1], byte '"'
+                    jmp .string_loop
+
+                .string_escape_newline:
+                    mov [ebx-1], byte '\n'
+                    jmp .string_loop
+
+                .string_escape_tab:
+                    mov [ebx-1], byte '\t'
+                    jmp .string_loop
+
+                .string_escape_carrage_return:
+                    mov [ebx-1], byte '\r'
+                    jmp .string_loop
+
+                jmp .string_loop
+
+        .string_done:
+        pop ebx
+
+        push eax
+        push esi
+        push edi
+
+        mov eax, ecx
+        inc eax
+        call malloc
+        mov edi, eax
+        mov esi, ebx
+        mov ebx, edi
+        push ecx
+        rep movsb
+        pop ecx
+        push ebx
+        add ebx, ecx
+        mov [ebx], byte 0x00
+        pop ebx
+
+        pop edi
+        pop esi
+        pop eax
+
+        inc eax
+        pop ecx
+        ret
+
+    .array:
+        inc eax
+
+        push eax
+        push ecx
+
+        mov ecx, 0
+
+        .array_element_count_loop:
+            cmp [eax], byte ','
+            je .array_element_count_inc
+
+            cmp [eax], byte '}'
+            je .array_element_count_loop_done
+
+            inc eax
+            jmp .array_element_count_loop
+
+            .array_element_count_inc:
+                inc eax
+                inc ecx
+                jmp .array_element_count_loop
+
+        .array_element_count_loop_done:
+
+        inc ecx
+        mov eax, ecx
+        shl eax, 2
+        call malloc
+        mov ebx, eax
+
+        pop ecx
+        pop eax
+
+        push ebx
+
+        .array_element_read_loop:
+            call heapflow_skip_spaces
+            cmp [eax], byte '}'
+            je .array_done
+
+            cmp [eax], byte ','
+            jne .array_element_read
+
+            inc eax
+
+            .array_element_read:
+            push ebx
+            push ecx
+            mov ecx, ebx
+            call heapflow_resolve_argument
+            mov [ecx], ebx
+            pop ecx
+            pop ebx
+
+            add ebx, 4
+            jmp .array_element_read_loop
+
+        .array_done:
+        pop ebx
+        ret
+
 
 heapflow_resolve_argument_f: ; eax: ptr to line (will be updated to point to n < ' '), ebx: ptr to getLine func, returns val, edx: ptr to interpreter
     ret
 
 heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n < ' '), ebx: returns val, edx: ptr to interpreter
+    ret
+
+heapflow_skip_spaces: ; eax: ptr to line (will be updated to point to a non-space character)
+    push edi
+    mov edi, eax
+    mov al, ' '
+    repe scasb
+    mov eax, edi
+    pop edi
     ret
 
 str_len_gr: ; Put string addr in ebx, length returned in ecx
