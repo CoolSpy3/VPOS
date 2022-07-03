@@ -55,8 +55,13 @@ hashmap_get: ; eax: ptr to hashmap, ebx: key, returns value
     ret
 
 hashmap_put: ; eax: ptr to hashmap, ebx: key (ptr to string), edx: val
+    push ebx
+    push eax
+    mov eax, ebx
     call hash_string
+    pop eax
     call hashmap_put_data
+    pop ebx
     ret
 
 hashmap_put_data: ; eax: ptr to hashmap, ebx: key, edx: val
