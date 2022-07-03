@@ -9,18 +9,6 @@ str_len: ; Put string addr in edi, length returned in eax
     pop ecx
     ret
 
-str_len_gr: ; Put string addr in eax, length returned in ecx
-    push eax
-    push edi
-
-    mov edi, eax
-    call str_len
-    mov ecx, eax
-
-    pop edi
-    pop eax
-    ret
-
 substr: ; copies esi to a new string retuned in edi (ecx bytes starting from idx eax)
     push esi
     push eax
