@@ -11,6 +11,7 @@ jmp $
 %include "HAL/idt.asm"
 %include "HAL/pic.asm"
 %include "heapflow/constants.asm"
+%include "heapflow/function.asm"
 %include "heapflow/interpreter.asm"
 %include "MMU/malloc.asm"
 %include "graphics_drivers/vga_serial_driver.asm"

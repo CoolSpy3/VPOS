@@ -1,3 +1,15 @@
+heapflow_init:
+    push eax
+    push ebx
+
+    mov eax, HEAPFLOW_ARGS
+    call hash_string
+    mov [HEAPFLOW_ARGS], ebx
+
+    pop ebx
+    pop eax
+    ret
+
 heapflow_interpreter_new: ; edx: returns ptr
     push eax
 
@@ -50,21 +62,23 @@ parsehf_file_data: ;esi: file data pointer ; eax: arraylist pointer
     ret
     
 
-heapflow_parse_stream: ; ebx: ptr to getLine function, ecx: returns flags
+heapflow_parse_stream: ; ebx: ptr to stream, ecx: returns flags
     push eax
     push ebx
     push edx
 
+    mov ecx, 0
+
     call heapflow_interpreter_new
 
     .loop:
-        call ebx
+        call buffered_stream_get_next
         cmp [eax], byte 0
         je .done
 
         call heapflow_parse_line
-        jecxz .done
-        jmp .loop
+        jecxz .loop
+        jmp .done
 
     .done:
 
@@ -94,7 +108,6 @@ heapflow_parse_stream: ; ebx: ptr to getLine function, ecx: returns flags
         push eax
         push ebx
         call arraylist_get
-        mov eax, ebx
         call heapflow_function_free
         pop ebx
         pop eax
@@ -109,7 +122,7 @@ heapflow_parse_stream: ; ebx: ptr to getLine function, ecx: returns flags
     pop eax
     ret
 
-heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: returns flags, edx: ptr to interpreter
+heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags, edx: ptr to interpreter
     push eax
     push ebx
     push edx
@@ -118,10 +131,13 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
 
     call trim_string
 
-    cld
+    cmp [eax], byte 0
+    je .done
 
     cmp [eax], byte ';'
     je .done
+
+    cld
 
     push ebx
 
@@ -430,7 +446,6 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
         inc eax
 
         call heapflow_resolve_argument
-        mov eax, ebx
         call heapflow_function_free
 
         jmp .done
@@ -594,11 +609,9 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
         call heapflow_resolve_argument
         cmp ebx, 0
         pop ebx
-        je .if_skip_call
+        je .done
 
         call heapflow_function_call
-
-        .if_skip_call:
 
         jmp .done_with_flags
 
@@ -636,12 +649,14 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
         call free
         pop eax
 
-        mov edx, ecx
+        mov eax, ecx
 
         call heapflow_function_call_with_params
 
         mov eax, edx
         call free
+
+        and ecx, ~HEAPFLOW_RETURN_FLAG
 
         jmp .done_with_flags
 
@@ -666,11 +681,17 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
             cmp ebx, 0
             pop ebx
             pop eax
-            je .done_with_flags
+            je .done
 
             call heapflow_function_call
 
-            jmp .while_loop
+            and ecx, ~HEAPFLOW_CONTINUE_FLAG
+            jz .while_loop
+
+            and ecx, ~HEAPFLOW_BREAK_FLAG
+            jz .done
+
+            jmp .done_with_flags
 
     .in:
         call free_esi
@@ -696,6 +717,7 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to getLine function, ecx: retu
         jmp .done
 
 heapflow_read_until_space: ; eax: ptr to line (will be updated to point to n < ' '), ebx: returns ptr to string
+    call heapflow_skip_spaces
     push esi
     push edi
     push ecx
@@ -803,7 +825,10 @@ heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n <
 
                 ; Unknown escape code :/
 
-                mov [ebx-1], byte ' '
+                push eax
+                mov eax, [eax]
+                mov [ebx-1], eax
+                pop eax
                 jmp .string_loop
 
                 .string_escape_backslash:
@@ -920,7 +945,141 @@ heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n <
         ret
 
 
-heapflow_resolve_argument_f: ; eax: ptr to line (will be updated to point to n < ' '), ebx: ptr to getLine func, returns val, edx: ptr to interpreter
+heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val, edx: ptr to interpreter
+    push ecx
+    push edx
+    push esi
+    push edi
+
+    mov edx, [edx]
+
+    push eax
+    call hashmap_new
+    mov ecx, eax
+    pop eax
+
+    push ebx
+
+    .loop1:
+        call heapflow_read_until_space
+        cmp [ebx], byte 0
+        je .loop1_done
+        push eax
+        mov eax, ebx
+        call hash_string
+        pop eax
+
+        push eax
+        push edx
+        mov eax, edx
+        push ebx
+        call hashmap_get_data
+        mov edx, ebx
+        pop ebx
+        mov eax, ecx
+        call hashmap_put_data
+        pop edx
+        pop eax
+
+        jmp .loop1
+
+    .loop1_done:
+
+    pop ebx
+
+    mov edx, ecx
+
+    call arraylist_new
+    mov ecx, eax
+
+    push edx
+    mov edx, 0
+
+    .loop2:
+        call buffered_stream_get_next
+        cmp [eax], byte 0
+        je .loop2_done
+        call trim_string
+        cmp [eax], byte 0
+        je .loop2_done
+
+        mov esi, eax
+        mov edi, HEAPFLOW_END
+        push esi
+        push ecx
+        mov ecx, 4 ; length of "end" + null byte
+        repe cmpsb
+        pop ecx
+        pop esi
+        je .handle_end
+
+        push eax
+        push ebx
+        push ecx
+        mov bl, ' '
+        call split_string
+
+        cmp [eax], dword 2
+        jb .add_line
+
+        mov ebx, 1
+        call arraylist_get
+
+        mov esi, ebx
+        call str_len_gr
+
+        mov edi, HEAPFLOW_PTF
+        push esi
+        push ecx
+        repe cmpsb
+        pop ecx
+        pop esi
+        je .handle_function
+
+        mov edi, HEAPFLOW_LPTF
+        push esi
+        push ecx
+        repe cmpsb
+        pop ecx
+        pop esi
+        jne .add_line
+
+        .handle_function:
+        inc edx
+
+        .add_line:
+
+        call arraylist_deep_free
+
+        pop ecx
+        pop ebx
+        pop eax
+
+        push ebx
+        mov ebx, eax
+        mov eax, ecx
+        call arraylist_add
+        pop ebx
+
+        jmp .loop2
+
+        .handle_end:
+        call free
+        cmp edx, 0
+        je .loop2_done
+        dec edx
+        jmp .loop2
+
+    .loop2_done:
+
+    pop edx
+
+    call heapflow_function_new
+
+    pop edi
+    pop esi
+    pop edx
+    pop ecx
     ret
 
 heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n < ' '), ebx: returns val, edx: ptr to interpreter
@@ -961,8 +1120,10 @@ free_esi: ; esi: will be freed
     pop eax
     ret
 
-HEAPFLOW_INTERPRETER_LENGTH equ 4 + 4 + 4 + 4 + 4 ; (context + local ptrs + local functions + return cache + general cache)
+
+HEAPFLOW_INTERPRETER_LENGTH equ 4 + 4 + 4 + 4 + 4 ; (context + local ptrs + local functions + general cache + return cache)
 HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET equ 4
 HEAPFLOW_INTERPRETER_LOCAL_FUNCTION_LIST_OFFSET equ 4 + 4
-HEAPFLOW_INTERPRETER_RETURN_OFFSET equ 4 + 4 + 4
-HEAPFLOW_INTERPRETER_CACHE_OFFSET equ 4 + 4 + 4 + 4
+HEAPFLOW_INTERPRETER_CACHE_OFFSET equ 4 + 4 + 4
+HEAPFLOW_INTERPRETER_RETURN_OFFSET equ 4 + 4 + 4 + 4
+HEAPFLOW_ARGS_HASH dd 0

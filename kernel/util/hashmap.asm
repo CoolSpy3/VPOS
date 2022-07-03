@@ -47,6 +47,14 @@ hashmap_get_addr: ; eax: ptr to hashmap, ebx: key, returns ptr to value
     jmp .done
 
 hashmap_get: ; eax: ptr to hashmap, ebx: key, returns value
+    push eax
+    mov eax, ebx
+    call hash_string
+    pop eax
+    call hashmap_get_data
+    ret
+
+hashmap_get_data: ; eax: ptr to hashmap, ebx: key, returns value
     call hashmap_get_addr
     cmp ebx, 0
     je .done

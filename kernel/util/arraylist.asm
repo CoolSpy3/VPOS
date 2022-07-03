@@ -91,6 +91,34 @@ arraylist_free: ; eax: ptr to arraylist
     call free
     ret
 
+arraylist_deep_free: ; eax: ptr to arraylist
+    push eax
+    push ecx
+
+    mov ecx, [eax]
+    mov eax, [eax+ARRAYLIST_DATA_OFFSET]
+
+    push eax
+
+    jecxz .skip_loop
+
+    .loop:
+        call free
+        add eax, 4
+        dec ecx
+        jnz .loop
+
+    .skip_loop:
+
+    pop eax
+
+    call free
+
+    pop ecx
+    pop eax
+    call free
+    ret
+
 arraylist_copy: ; eax: ptr to arraylist, ebx: returns ptr to new arraylist
     push esi
     push edi
