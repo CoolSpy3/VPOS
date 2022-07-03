@@ -767,7 +767,7 @@ heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n <
             cmp [eax], byte '"'
             je .string_done
 
-            cmp [eax], byte '\\'
+            cmp [eax], byte '\'
             je .string_escape
 
             push dx
@@ -786,7 +786,7 @@ heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n <
                 inc ebx
                 inc ecx
 
-                cmp [eax], byte '\\'
+                cmp [eax], byte '\'
                 je .string_escape_backslash
 
                 cmp [eax], byte '"'
@@ -807,7 +807,7 @@ heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n <
                 jmp .string_loop
 
                 .string_escape_backslash:
-                    mov [ebx-1], byte '\\'
+                    mov [ebx-1], byte '\'
                     jmp .string_loop
 
                 .string_escape_string:
@@ -815,15 +815,15 @@ heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n <
                     jmp .string_loop
 
                 .string_escape_newline:
-                    mov [ebx-1], byte '\n'
+                    mov [ebx-1], byte 0x0A
                     jmp .string_loop
 
                 .string_escape_tab:
-                    mov [ebx-1], byte '\t'
+                    mov [ebx-1], byte 0x09
                     jmp .string_loop
 
                 .string_escape_carrage_return:
-                    mov [ebx-1], byte '\r'
+                    mov [ebx-1], byte 0x0D
                     jmp .string_loop
 
                 jmp .string_loop
