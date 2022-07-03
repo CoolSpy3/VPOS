@@ -9,6 +9,18 @@ str_len: ; Put string addr in edi, length returned in eax
     pop ecx
     ret
 
+str_len_gr: ; Put string addr in eax, length returned in ecx
+    push eax
+    push edi
+
+    mov edi, eax
+    call str_len
+    mov ecx, eax
+
+    pop edi
+    pop eax
+    ret
+
 substr: ; copies esi to a new string retuned in edi (ecx bytes starting from idx eax)
     push esi
     push eax
@@ -86,4 +98,48 @@ split_string: ; esi: string address, eax: returns pointer to arraylist, bl: spli
     pop edx
     pop ecx
     pop bx
+    ret
+
+trim_string: ; eax: ptr to string, returns ptr to new string
+    push esi
+    push edi
+    push ecx
+
+    mov esi, eax
+    mov edi, eax
+    call str_len
+    mov ecx, eax
+
+    cmp [esi], byte ' '
+    ja .skip_leading_loop
+
+    .leading_loop:
+        inc esi
+        dec ecx
+        cmp [esi], byte ' '
+        jbe .leading_loop
+
+    .skip_leading_loop:
+
+    mov edi, esi
+    add edi, ecx
+    dec edi
+    cmp [edi], byte ' '
+    ja .skip_trailing_loop
+
+    .trailing_loop:
+        dec edi
+        dec ecx
+        cmp [edi], byte ' '
+        jbe .trailing_loop
+
+    .skip_trailing_loop:
+
+    mov eax, 0
+    call substr
+    mov eax, edi
+
+    pop ecx
+    pop edi
+    pop esi
     ret

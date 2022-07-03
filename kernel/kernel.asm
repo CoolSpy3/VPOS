@@ -8,18 +8,20 @@ main:
 jmp $
 
 %include "kernel_main.asm"
-%include "panic.asm"
-%include "string.asm"
-%include "spinlock.asm"
 %include "HAL/idt.asm"
 %include "HAL/pic.asm"
+%include "heapflow/constants.asm"
+%include "heapflow/interpreter.asm"
 %include "MMU/malloc.asm"
 %include "graphics_drivers/vga_serial_driver.asm"
 %include "graphics_drivers/vga_textmode_driver.asm"
 %include "util/arraylist.asm"
 %include "util/hashmap.asm"
+%include "util/panic.asm"
+%include "util/string.asm"
+%include "util/spinlock.asm"
 
 %include "MMU/stack.asm"
 %include "MMU/ram.asm"
 
-%include "MMU/padding.asm"
+; %include "MMU/padding.asm"

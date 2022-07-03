@@ -20,11 +20,9 @@ return equ <data>
 return pt <data>
 return
 int <value> ax=<value> bx=<value> cx=<value> dx=<value>
-inc <label>
-dec <label>
-dela <label>
+del <label>
 delf <label>
 break
 continue
 str pt "hi" (equivalent to str pt ['h' 'i' 0])
-dela str
+del str
