@@ -10,6 +10,7 @@ jmp $
 %include "kernel_main.asm"
 %include "HAL/idt.asm"
 %include "HAL/pic.asm"
+%include "heapflow/bufferedstream.asm"
 %include "heapflow/constants.asm"
 %include "heapflow/function.asm"
 %include "heapflow/interpreter.asm"

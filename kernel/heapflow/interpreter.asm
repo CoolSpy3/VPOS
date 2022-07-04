@@ -800,7 +800,451 @@ heapflow_read_until_non_alphanumeric: ; eax: ptr to line (will be updated to poi
     ret
 
 heapflow_resolve_argument: ; eax: ptr to line (will be updated to point to n < ' '), ebx: returns val, edx: ptr to interpreter
+    call heapflow_skip_spaces
+
+    ; Unary Operators
+
+    cmp [eax], byte '+'
+    je .pos
+    cmp [eax], byte '-'
+    je .neg
+    cmp [eax], byte '~'
+    je .not_bit
+    cmp [eax], byte '!'
+    je .not_bool
+
+    ; Grouping
+
+    cmp [eax], byte '['
+    je .deref
+    cmp [eax], byte '('
+    je .paren
+
+    call heapflow_resolve_argument_i
+
+    ; Other Operators
+
+    .operator_check:
+
+    push eax
+    call heapflow_skip_spaces
+
+    cmp [eax], byte '+'
+    je .add
+    cmp [eax], byte '-'
+    je .sub
+    cmp [eax], byte '*'
+    je .mul
+    cmp [eax], byte '/'
+    je .div
+    cmp [eax], byte '%'
+    je .mod
+    cmp [eax], byte '<'
+    je .lt
+    cmp [eax], byte '>'
+    je .gt
+    cmp [eax], byte '&'
+    je .and
+    cmp [eax], byte '|'
+    je .or
+    cmp [eax], byte '^'
+    je .xor
+    cmp [eax], byte '='
+    je .eq
+    cmp [eax], byte '!'
+    jne .not_neq
+    cmp [eax+1], byte '='
+    je .neq
+
+    .not_neq:
+
+    pop eax
+
     ret
+
+    ; Helper Jumps
+    .true:
+        mov ebx, 1
+        ret
+
+    .false:
+        mov ebx, 0
+        ret
+
+    ; Prefix
+
+    .pos:
+        inc eax
+        cmp [eax], byte '+'
+        je .inc
+        call heapflow_resolve_argument
+        jmp .operator_check
+
+        .inc:
+            inc eax
+            call heapflow_resolve_argument
+            inc ebx
+            ret
+
+    .neg:
+        inc eax
+        cmp [eax], byte '-'
+        je .dec
+        call heapflow_resolve_argument
+        jmp .operator_check
+
+        .dec:
+            inc eax
+            call heapflow_resolve_argument
+            dec ebx
+            ret
+
+    .not_bit:
+        inc eax
+        call heapflow_resolve_argument
+        not ebx
+        ret
+
+    .not_bool:
+        inc eax
+        call heapflow_resolve_argument
+        cmp ebx, 0
+        je .true
+        jmp .false
+
+    ; Grouping
+
+    .deref:
+        inc eax
+        call heapflow_resolve_argument
+        inc eax
+        mov ebx, [ebx]
+        jmp .operator_check
+
+    .paren:
+        inc eax
+        call heapflow_resolve_argument
+        inc eax
+        jmp .operator_check
+
+    ; Other
+
+    .add:
+        add esp, 4
+        inc eax
+        cmp [eax], byte '+'
+        je .inc_post
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        add ebx, ecx
+
+        pop ecx
+        ret
+
+        .inc_post:
+            inc eax
+            inc ebx
+            jmp .operator_check
+
+    .sub:
+        add esp, 4
+        inc eax
+        cmp [eax], byte '-'
+        je .inc_post
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        sub ebx, ecx
+
+        pop ecx
+        ret
+
+        .dec_post:
+            inc eax
+            inc ebx
+            jmp .operator_check
+
+    .mul:
+        add esp, 4
+        inc eax
+        cmp [eax], byte '*'
+        je .pow
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        push eax
+        push edx
+        mov eax, ebx
+        mul ecx
+        mov ebx, eax
+        pop edx
+        pop eax
+
+        pop ecx
+        ret
+
+        .pow:
+            inc eax
+            push ecx
+            push ebx
+            call heapflow_resolve_argument
+            mov ecx, ebx
+            pop ebx
+
+            push eax
+            mov eax, ebx
+            call pow
+            pop eax
+
+            pop ecx
+            ret
+
+    .div:
+        add esp, 4
+        inc eax
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        push eax
+        push edx
+        mov edx, 0
+        mov eax, ebx
+        div ecx
+        mov ebx, eax
+        pop edx
+        pop eax
+
+        pop ecx
+        ret
+
+    .mod:
+        add esp, 4
+        inc eax
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        push eax
+        push edx
+        mov edx, 0
+        mov eax, ebx
+        div ecx
+        mov ebx, edx
+        pop edx
+        pop eax
+
+        pop ecx
+        ret
+
+    .lt:
+        add esp, 4
+        inc eax
+        cmp [eax], byte '<'
+        je .lshift
+        cmp [eax], byte '='
+        je .lteq
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        cmp ebx, ecx
+        pop ecx
+        jb .true
+        jmp .false
+
+        .lshift:
+            inc eax
+            push ecx
+            push ebx
+            call heapflow_resolve_argument
+            mov ecx, ebx
+            pop ebx
+
+            shl ebx, cl
+
+            pop ecx
+            ret
+
+    .gt:
+        add esp, 4
+        inc eax
+        cmp [eax], byte '>'
+        je .rshift
+        cmp [eax], byte '='
+        je .gteq
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        cmp ebx, ecx
+        pop ecx
+        ja .true
+        jmp .false
+
+        .rshift:
+            inc eax
+            push ecx
+            push ebx
+            call heapflow_resolve_argument
+            mov ecx, ebx
+            pop ebx
+
+            shr ebx, cl
+
+            pop ecx
+            ret
+
+    .and:
+        add esp, 4
+        inc eax
+        cmp [eax], byte '&'
+        je .and_bool
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        and ebx, ecx
+
+        pop ecx
+        ret
+
+        .and_bool:
+            inc eax
+            push ecx
+            push ebx
+            call heapflow_resolve_argument
+            mov ecx, ebx
+            pop ebx
+
+            and ebx, ecx
+            pop ecx
+            cmp ebx, 0
+            je .false
+            jmp .true
+
+    .or:
+        add esp, 4
+        inc eax
+        cmp [eax], byte '|'
+        je .or_bool
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        or ebx, ecx
+
+        pop ecx
+        ret
+
+        .or_bool:
+            inc eax
+            push ecx
+            push ebx
+            call heapflow_resolve_argument
+            mov ecx, ebx
+            pop ebx
+
+            or ebx, ecx
+            pop ecx
+            cmp ebx, 0
+            je .false
+            jmp .true
+
+    .xor:
+        add esp, 4
+        inc eax
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        xor ebx, ecx
+
+        pop ecx
+        ret
+
+    .eq:
+        add esp, 4
+        inc eax
+        cmp [eax], byte '<'
+        je .lteq
+        cmp [eax], byte '>'
+        je .gteq
+        inc eax
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        cmp ebx, ecx
+        pop ecx
+        je .true
+        jmp .false
+
+    .neq:
+        add esp, 4
+        inc eax
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        cmp ebx, ecx
+        pop ecx
+        jne .true
+        jmp .false
+
+    .lteq:
+        inc eax
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        cmp ebx, ecx
+        pop ecx
+        jbe .true
+        jmp .false
+
+    .gteq:
+        inc eax
+        push ecx
+        push ebx
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        pop ebx
+
+        cmp ebx, ecx
+        pop ecx
+        jae .true
+        jmp .false
 
 heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n < ' '), ebx: returns val, edx: ptr to interpreter
     call heapflow_skip_spaces
@@ -812,6 +1256,13 @@ heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n <
     je .array
 
     call heapflow_resolve_argument
+
+    push eax
+    call heapflow_skip_spaces
+    cmp [eax], byte '{'
+    je .mkarr
+    pop eax
+
     push eax
     mov eax, 4
     call malloc
@@ -996,6 +1447,14 @@ heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n <
         pop ebx
         ret
 
+    .mkarr:
+        push eax
+        mov eax, ebx
+        call malloc
+        mov ebx, eax
+        pop eax
+        ret
+
 
 heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val, edx: ptr to interpreter
     push ecx
@@ -1165,7 +1624,8 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
     mov eax, 0
 
     .dec_loop:
-        mul dword 10
+        mov edx, 10
+        mul edx
         mov edx, 0
         mov dl, [ebx]
         sub dl, '0'
@@ -1284,6 +1744,24 @@ free_esi: ; esi: will be freed
     pop eax
     ret
 
+pow: ; Raises eax to the power of ecx (returned in eax) (ecx will become 0 or 1)
+    jecxz .case0
+    cmp ecx, 1
+    je .case1
+
+    push edx
+    mul eax
+    pop edx
+    dec ecx
+
+    call pow
+
+    .case1:
+    ret
+
+    .case0:
+        mov eax, 1
+        ret
 
 HEAPFLOW_INTERPRETER_LENGTH equ 4 + 4 + 4 + 4 + 4 ; (context + local ptrs + local functions + general cache + return cache)
 HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET equ 4
