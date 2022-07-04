@@ -747,6 +747,58 @@ heapflow_read_until_space: ; eax: ptr to line (will be updated to point to n < '
     pop esi
     ret
 
+heapflow_read_until_non_alphanumeric: ; eax: ptr to line (will be updated to point to n < ' '), ebx: returns ptr to string
+    call heapflow_skip_spaces
+    push esi
+    push edi
+    push ecx
+
+    mov esi, eax
+    mov ecx, 0
+
+    cmp [eax], byte ' '
+    jbe .skip_loop
+
+    .loop:
+        inc edi
+        inc ecx
+        cmp [eax], byte ' '
+        jbe .skip_loop
+
+        cmp [eax], byte '0'
+        jb .skip_loop
+
+        cmp [eax], byte '9'
+        jbe .loop
+
+        cmp [eax], byte 'A'
+        jb .skip_loop
+
+        cmp [eax], byte 'Z'
+        jbe .loop
+
+        cmp [eax], byte '_'
+        je .loop
+
+        cmp [eax], byte 'a'
+        jb .skip_loop
+
+        cmp [eax], byte 'z'
+        jbe .loop
+
+    .skip_loop:
+
+    push eax
+    mov eax, 0
+    call substr
+    mov ebx, edi
+    pop eax
+
+    pop ecx
+    pop edi
+    pop esi
+    ret
+
 heapflow_resolve_argument: ; eax: ptr to line (will be updated to point to n < ' '), ebx: returns val, edx: ptr to interpreter
     ret
 
@@ -1083,6 +1135,118 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
     ret
 
 heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n < ' '), ebx: returns val, edx: ptr to interpreter
+    call heapflow_read_until_non_alphanumeric
+
+    cmp [ebx], byte '9'
+    jbe .number
+
+    push eax
+    push edx
+    mov eax, [edx]
+    mov edx, ebx
+    call hashmap_get
+    mov eax, edx
+    call free
+    pop edx
+    pop eax
+
+    ret
+
+    .number:
+    cmp [ebx+1], byte 'b'
+    je .binary
+
+    cmp [ebx+1], byte 'x'
+    je .hex
+
+    push edx
+
+    mov ebx, eax
+    mov eax, 0
+
+    .dec_loop:
+        mul dword 10
+        mov edx, 0
+        mov dl, [ebx]
+        sub dl, '0'
+        add eax, edx
+        inc ebx
+        cmp [ebx], byte '0'
+        jb .skip_dec_loop
+        cmp [ebx], byte '9'
+        jbe .dec_loop
+
+    .skip_dec_loop:
+    xchg eax, ebx
+
+    pop edx
+    ret
+
+    .binary:
+    add eax, 2
+
+    push edx
+
+    mov ebx, eax
+    mov eax, 0
+
+    .bin_loop:
+        shl eax, 1
+        mov edx, 0
+        mov dl, [ebx]
+        sub dl, '0'
+        add eax, edx
+        inc ebx
+        cmp [ebx], byte '0'
+        jb .skip_bin_loop
+        cmp [ebx], byte '1'
+        jbe .bin_loop
+
+    .skip_bin_loop:
+    xchg eax, ebx
+
+    pop edx
+    ret
+
+    .hex:
+    add eax, 2
+
+    push edx
+
+    mov ebx, eax
+    mov eax, 0
+
+    .hex_loop:
+        shl eax, 4
+        mov edx, 0
+        mov dl, [ebx]
+        sub dl, '0'
+        cmp dl, 0x9
+        jbe .add_hex
+        sub dl, 'A'-0xA-'0'
+        cmp dl, 0xF
+        jbe .add_hex
+        sub dl, 'a'-'A'
+        .add_hex:
+        add eax, edx
+        inc ebx
+        cmp [ebx], byte '0'
+        jb .skip_hex_loop
+        cmp [ebx], byte '9'
+        jbe .hex_loop
+        cmp [ebx], byte 'A'
+        jb .skip_hex_loop
+        cmp [ebx], byte 'Z'
+        jbe .hex_loop
+        cmp [ebx], byte 'a'
+        jb .skip_hex_loop
+        cmp [ebx], byte 'z'
+        jbe .hex_loop
+
+    .skip_hex_loop:
+    xchg eax, ebx
+
+    pop edx
     ret
 
 heapflow_skip_spaces: ; eax: ptr to line (will be updated to point to a non-space character)
