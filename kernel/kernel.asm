@@ -26,4 +26,4 @@ jmp $
 %include "MMU/stack.asm"
 %include "MMU/ram.asm"
 
-; %include "MMU/padding.asm"
+%include "MMU/padding.asm"

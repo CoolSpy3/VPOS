@@ -14,7 +14,7 @@ sti
 
 mov [boot_disk], dl
 mov bx, 0x1000
-mov dh, 20
+mov dh, 30
 mov dl, [boot_disk]
 
 call disk_load
