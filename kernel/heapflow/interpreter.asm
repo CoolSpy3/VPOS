@@ -619,11 +619,40 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
         call heapflow_resolve_argument
         cmp ebx, 0
         pop ebx
-        je .done
+        je .if_check_else
 
         call heapflow_function_call
 
         jmp .done_with_flags
+
+        .if_check_else:
+            call heapflow_skip_spaces
+            cmp [eax], byte 'e'
+            jne .done
+            call heapflow_read_until_non_alphanumeric
+            call free_ebx
+            call heapflow_skip_spaces
+            call heapflow_read_until_non_alphanumeric
+            mov [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET], ebx
+            call heapflow_skip_spaces
+            call heapflow_read_until_non_alphanumeric
+            mov esi, ebx
+            cmp [esi], byte 'i'
+            je .if
+
+            push eax
+            mov eax, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+            call heapflow_resolve_argument_i
+            pop eax
+
+            push eax
+            mov eax, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+            call free
+            pop eax
+
+            call heapflow_function_call
+
+            jmp .done_with_flags
 
     .jmp:
         call free_esi
