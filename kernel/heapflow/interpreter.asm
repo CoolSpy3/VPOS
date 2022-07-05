@@ -916,12 +916,12 @@ heapflow_resolve_argument: ; eax: ptr to line (will be updated to point to n < '
         inc eax
         cmp [eax], byte '+'
         je .inc
-        call heapflow_resolve_argument
+        call heapflow_resolve_argument_i
         jmp .operator_check
 
         .inc:
             inc eax
-            call heapflow_resolve_argument
+            call heapflow_resolve_argument_i
             inc ebx
             ret
 
@@ -929,27 +929,35 @@ heapflow_resolve_argument: ; eax: ptr to line (will be updated to point to n < '
         inc eax
         cmp [eax], byte '-'
         je .dec
-        call heapflow_resolve_argument
+        call heapflow_resolve_argument_i
         jmp .operator_check
 
         .dec:
             inc eax
-            call heapflow_resolve_argument
+            call heapflow_resolve_argument_i
             dec ebx
-            ret
+            jmp .operator_check
 
     .not_bit:
         inc eax
-        call heapflow_resolve_argument
+        call heapflow_resolve_argument_i
         not ebx
-        ret
+        jmp .operator_check
 
     .not_bool:
         inc eax
-        call heapflow_resolve_argument
+        call heapflow_resolve_argument_i
         cmp ebx, 0
-        je .true
-        jmp .false
+        je .not_bool_true
+        jmp .not_bool_false
+
+        .not_bool_true:
+            mov ebx, 1
+            jmp .operator_check
+
+        .not_bool_false:
+            mov ebx, 0
+            jmp .operator_check
 
     ; Grouping
 
