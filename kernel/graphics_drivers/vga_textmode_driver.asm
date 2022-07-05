@@ -114,7 +114,7 @@ vga_textmode_showhex: ; eax: val, cl: x, ch: y, dl: color
     pop ax
     ret
 
-vga_texmode_showeaxandhang:
+vga_textmode_showeaxandhang:
     mov cl, 0
     mov ch, 0
     mov dh, byte 0x5
