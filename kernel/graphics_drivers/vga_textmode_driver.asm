@@ -121,6 +121,14 @@ vga_textmode_showeaxandhang:
     call vga_textmode_showhex
     jmp $
 
+vga_textmode_showalascharandhang:
+    mov cl, 0
+    mov ch, 0
+    mov dh, byte 0x5
+    mov dl, al
+    call vga_textmode_setchar
+    jmp $
+
 hex_string:
     db '0x'
     times 4*2+1 db 0

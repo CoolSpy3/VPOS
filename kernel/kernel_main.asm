@@ -172,7 +172,7 @@ kernel_main:
 
     ret
 
-testcode db 'set 0xB8000 0x0530', 0
+testcode db "set 0xB8000 (0x05 << 8) | '0'", 0
 test_split db 'a.bb.ccc.dddd', 0
 test_string2 db 'Password', 0
 

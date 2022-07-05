@@ -1393,8 +1393,6 @@ heapflow_resolve_argument_p: ; eax: ptr to line (will be updated to point to n <
                     mov [ebx-1], byte 0x0D
                     jmp .string_loop
 
-                jmp .string_loop
-
         .string_done:
         pop ebx
 
@@ -1671,6 +1669,9 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
     ret
 
     .number:
+        cmp [ebx], byte "'"
+        je .char
+
         push edx
         push ebx
         cmp [ebx+1], byte 'b'
@@ -1782,19 +1783,76 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
         pop eax
         jmp .num_done
 
+    .char:
+        push edx
+        push ebx
+        inc ebx
+        cmp [ebx], byte '\'
+        je .char_escape
+        mov bl, [ebx]
+        and ebx, 0xFF
+
+        .char_done:
+        mov edx, ebx
+        pop ebx
+        call free_ebx
+        mov ebx, edx
+        pop edx
+        ret
+
+        .char_escape:
+            inc ebx
+            cmp [ebx], byte '\'
+            je .char_escape_backslash
+
+            cmp [ebx], byte "'"
+            je .char_escape_char
+
+            cmp [ebx], byte 'n'
+            je .char_escape_newline
+
+            cmp [ebx], byte 't'
+            je .char_escape_tab
+
+            cmp [ebx], byte 'r'
+            je .char_escape_carrage_return
+
+            ; Unknown escape code :/
+
+            mov bl, [ebx]
+            and ebx, 0xFF
+            jmp .char_done
+
+            .char_escape_backslash:
+                mov ebx, '\'
+                jmp .char_done
+
+            .char_escape_char:
+                mov ebx, '"'
+                jmp .char_done
+
+            .char_escape_newline:
+                mov ebx, 0x0A
+                jmp .char_done
+
+            .char_escape_tab:
+                mov ebx, 0x09
+                jmp .char_done
+
+            .char_escape_carrage_return:
+                mov ebx, 0x0D
+                jmp .char_done
+
+
     .return:
         mov ebx, [edx+HEAPFLOW_INTERPRETER_RETURN_OFFSET]
         ret
 
 heapflow_skip_spaces: ; eax: ptr to line (will be updated to point to a non-space character)
     cmp [eax], byte ' '
-    jne .skip
-    push edi
-    mov edi, eax
-    mov al, ' '
-    repe scasb
-    mov eax, edi
-    pop edi
+    ja .skip
+    inc eax
+    jmp heapflow_skip_spaces
     .skip:
     ret
 

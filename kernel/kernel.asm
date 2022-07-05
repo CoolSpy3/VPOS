@@ -15,6 +15,7 @@ jmp $
 %include "heapflow/function.asm"
 %include "heapflow/interpreter.asm"
 %include "MMU/malloc.asm"
+%include "graphics_drivers/vga_logger.asm"
 %include "graphics_drivers/vga_serial_driver.asm"
 %include "graphics_drivers/vga_textmode_driver.asm"
 %include "util/arraylist.asm"
