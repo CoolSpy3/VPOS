@@ -1642,6 +1642,8 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
     ret
 
     .number:
+        push edx
+        push ebx
         cmp [ebx+1], byte 'b'
         je .binary
 
@@ -1671,6 +1673,15 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
 
         pop edx
         pop eax
+
+        .num_done:
+        pop edx
+        push eax
+        mov eax, edx
+        call free
+        pop eax
+        pop edx
+
         ret
 
     .binary:
@@ -1698,7 +1709,7 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
 
         pop edx
         pop eax
-        ret
+        jmp .num_done
 
     .hex:
         add ebx, 2
@@ -1740,7 +1751,7 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
 
         pop edx
         pop eax
-        ret
+        jmp .num_done
 
     .return:
         mov ebx, [edx+HEAPFLOW_INTERPRETER_RETURN_OFFSET]
