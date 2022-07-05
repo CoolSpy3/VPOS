@@ -204,6 +204,14 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
     pop esi
     je .out
 
+    mov edi, HEAPFLOW_SET
+    push esi
+    push ecx
+    repe cmpsb
+    pop ecx
+    pop esi
+    je .set
+
     mov [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET], esi ; The first argument is likely a label name. We need more registers to parse the rest of the line, so just cache it for now
 
     inc eax
@@ -471,12 +479,26 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
         inc eax
 
         call heapflow_resolve_argument
-        mov dx, bx
+        mov cx, bx
         inc eax
         call heapflow_resolve_argument
         mov al, bl
+        mov dx, cx
 
         out dx, al
+
+        jmp .done
+
+    .set:
+        call free_esi
+        inc eax
+
+        call heapflow_resolve_argument
+        mov ecx, ebx
+        inc eax
+        call heapflow_resolve_argument
+
+        mov [ecx], ebx
 
         jmp .done
 
