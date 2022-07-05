@@ -35,16 +35,18 @@ heapflow_interpreter_free: ; edx: ptr
     push eax
 
     mov eax, [edx]
-    call free
+    call hashmap_free
 
     mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET]
-    call free
+    call arraylist_free
 
     mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_FUNCTION_LIST_OFFSET]
-    call free
+    call arraylist_free
 
     mov eax, edx
     call free
+
+    pop eax
 
     ret
 
@@ -73,7 +75,7 @@ heapflow_parse_stream: ; ebx: ptr to stream, ecx: returns flags
 
     .loop:
         call buffered_stream_get_next
-        cmp [eax], byte 0
+        cmp eax, byte 0
         je .done
 
         call heapflow_parse_line
@@ -83,34 +85,20 @@ heapflow_parse_stream: ; ebx: ptr to stream, ecx: returns flags
     .done:
 
     mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET]
-    mov ebx, [eax]
-
-    .local_free_loop:
-        cmp ebx, 0
-        je .local_free_loop_done
-        push eax
-        push ebx
-        call arraylist_get
-        mov eax, ebx
-        call free
-        pop ebx
-        pop eax
-        jmp .local_free_loop
-
-    .local_free_loop_done:
+    call arraylist_deep_free
 
     mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET]
     mov ebx, [eax]
+    mov eax, [eax+ARRAYLIST_DATA_OFFSET]
 
     .local_free_function_loop:
         cmp ebx, 0
         je .local_free_function_loop_done
         push eax
-        push ebx
-        call arraylist_get
+        mov eax, [eax]
         call heapflow_function_free
-        pop ebx
         pop eax
+        add eax, 4
         jmp .local_free_function_loop
 
     .local_free_function_loop_done:
@@ -751,7 +739,7 @@ heapflow_read_until_space: ; eax: ptr to line (will be updated to point to n < '
     jbe .skip_loop
 
     .loop:
-        inc edi
+        inc eax
         inc ecx
         cmp [eax], byte ' '
         ja .loop
@@ -782,7 +770,7 @@ heapflow_read_until_non_alphanumeric: ; eax: ptr to line (will be updated to poi
     jbe .skip_loop
 
     .loop:
-        inc edi
+        inc eax
         inc ecx
         cmp [eax], byte ' '
         jbe .skip_loop
@@ -1497,6 +1485,7 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         call heapflow_read_until_space
         cmp [ebx], byte 0
         je .loop1_done
+        push ebx
         push eax
         mov eax, ebx
         call hash_string
@@ -1514,9 +1503,13 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         pop edx
         pop eax
 
+        pop ebx
+        call free_ebx
+
         jmp .loop1
 
     .loop1_done:
+    call free_ebx
 
     pop ebx
 
@@ -1534,7 +1527,7 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         je .loop2_done
         call trim_string
         cmp [eax], byte 0
-        je .loop2_done
+        je .loop2_trim_done
 
         mov esi, eax
         mov edi, HEAPFLOW_END
@@ -1603,6 +1596,9 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         dec edx
         jmp .loop2
 
+    .loop2_trim_done:
+    call free
+
     .loop2_done:
 
     pop edx
@@ -1652,9 +1648,9 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
         cmp [ebx+1], byte 'x'
         je .hex
 
+        push eax
         push edx
 
-        mov ebx, eax
         mov eax, 0
 
         .dec_loop:
@@ -1671,17 +1667,18 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
             jbe .dec_loop
 
         .skip_dec_loop:
-        xchg eax, ebx
+        mov ebx, eax
 
         pop edx
+        pop eax
         ret
 
     .binary:
-        add eax, 2
+        add ebx, 2
 
+        push eax
         push edx
 
-        mov ebx, eax
         mov eax, 0
 
         .bin_loop:
@@ -1697,17 +1694,18 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
             jbe .bin_loop
 
         .skip_bin_loop:
-        xchg eax, ebx
+        mov ebx, eax
 
         pop edx
+        pop eax
         ret
 
     .hex:
-        add eax, 2
+        add ebx, 2
 
+        push eax
         push edx
 
-        mov ebx, eax
         mov eax, 0
 
         .hex_loop:
@@ -1738,9 +1736,10 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
             jbe .hex_loop
 
         .skip_hex_loop:
-        xchg eax, ebx
+        mov ebx, eax
 
         pop edx
+        pop eax
         ret
 
     .return:
@@ -1748,12 +1747,15 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
         ret
 
 heapflow_skip_spaces: ; eax: ptr to line (will be updated to point to a non-space character)
+    cmp [eax], byte ' '
+    jne .skip
     push edi
     mov edi, eax
     mov al, ' '
     repe scasb
     mov eax, edi
     pop edi
+    .skip:
     ret
 
 str_len_gr: ; Put string addr in ebx, length returned in ecx

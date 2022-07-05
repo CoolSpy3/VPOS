@@ -8,7 +8,15 @@ kernel_main:
     ; mov dl, byte 'U'=222
     ; mov dh, byte 0x5
     ; call vga_textmode_setchar
+
     call clear_textmode_buffer
+
+    call arraylist_new
+    mov ebx, testcode
+    call arraylist_add
+    call buffered_stream_new
+    call heapflow_init
+    call heapflow_parse_stream
 
     ; mov eax, MEM_START
     ; mov cl, 0
@@ -136,34 +144,35 @@ kernel_main:
     ; mov cx, 0x700
     ; call vga_textmode_setstring
 
-    mov esi, test_split
-    mov bl, byte '.'
-    call split_string
-    mov ebx, 0
-    call arraylist_get
-    mov cx, 0x000
-    mov dh, 5
-    call vga_textmode_setstring
-    mov ebx, 1
-    call arraylist_get
-    mov cx, 0x100
-    mov dh, 5
-    call vga_textmode_setstring
-    mov ebx, 2
-    call arraylist_get
-    mov cx, 0x200
-    mov dh, 5
-    call vga_textmode_setstring
-    mov ebx, 3
-    call arraylist_get
-    mov cx, 0x300
-    mov dh, 5
-    call vga_textmode_setstring
+    ; mov esi, test_split
+    ; mov bl, byte '.'
+    ; call split_string
+    ; mov ebx, 0
+    ; call arraylist_get
+    ; mov cx, 0x000
+    ; mov dh, 5
+    ; call vga_textmode_setstring
+    ; mov ebx, 1
+    ; call arraylist_get
+    ; mov cx, 0x100
+    ; mov dh, 5
+    ; call vga_textmode_setstring
+    ; mov ebx, 2
+    ; call arraylist_get
+    ; mov cx, 0x200
+    ; mov dh, 5
+    ; call vga_textmode_setstring
+    ; mov ebx, 3
+    ; call arraylist_get
+    ; mov cx, 0x300
+    ; mov dh, 5
+    ; call vga_textmode_setstring
 
     .return:
 
     ret
 
+testcode db 'set 0xB8000 0x0530', 0
 test_split db 'a.bb.ccc.dddd', 0
 test_string2 db 'Password', 0
 
