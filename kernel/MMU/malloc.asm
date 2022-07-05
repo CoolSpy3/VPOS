@@ -8,9 +8,21 @@ malloc: ; eax: size, returns ptr
     ja panic
 
     push ebx
-    mov ebx, MEM_START
+    mov ebx, [HEAP_PTR]
     call .find_and_allocate_memory
     pop ebx
+    push eax
+    push ebx
+    mov ebx, 0
+    mov bx, [eax]
+    add eax, ebx
+    pop ebx
+    mov [HEAP_PTR], eax
+    cmp [HEAP_PTR], dword MEM_END
+    jb .done
+    mov [HEAP_PTR], dword MEM_START
+    .done:
+    pop eax
     add eax, BLOCK_HEADER_LENGTH
     ret
 
@@ -59,9 +71,12 @@ malloc: ; eax: size, returns ptr
     add ebx, edx
     pop edx
     cmp ebx, MEM_END
-    jae panic ; There is no next block, we've run out of memory
-    call .find_and_allocate_memory ; try to allocate the next block
-    ret
+    jae .search_from_start ; There is no next block, we've run out of memory
+    jmp .find_and_allocate_memory ; try to allocate the next block
+
+    .search_from_start:
+    mov ebx, [HEAP_PTR]
+    jmp .find_and_allocate_memory
 
 free: ; eax: ptr to memory
     push eax
@@ -125,6 +140,7 @@ free: ; eax: ptr to memory
     ret
 
 
+HEAP_PTR dd MEM_START
 BLOCK_HEADER_LENGTH equ 2+2+1 ; length (including header), in use
 BLOCK_PREV_LENGTH_OFFSET equ 2
 BLOCK_IN_USE_OFFSET equ 2+2
