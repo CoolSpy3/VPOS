@@ -16,7 +16,9 @@ kernel_main:
     call arraylist_add
     call buffered_stream_new
     call heapflow_init
-    call heapflow_parse_stream
+    call heapflow_interpreter_new
+    call heapflow_parse_bufferedstream
+    call heapflow_interpreter_free
 
     ; mov eax, MEM_START
     ; mov cl, 0

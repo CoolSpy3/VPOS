@@ -64,7 +64,8 @@ heapflow_function_call_with_params: ; eax: ptr to params, ebx: ptr to function, 
     mov eax, [ebx]
     call buffered_stream_new
 
-    call heapflow_parse_stream
+    call heapflow_parse_bufferedstream
+    call heapflow_interpreter_clean
 
     ; Restore the interpreter state
     push ecx

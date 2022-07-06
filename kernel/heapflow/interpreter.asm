@@ -31,58 +31,10 @@ heapflow_interpreter_new: ; edx: returns ptr
     pop eax
     ret
 
-heapflow_interpreter_free: ; edx: ptr
-    push eax
-
-    mov eax, [edx]
-    call hashmap_free
-
-    mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET]
-    call arraylist_free
-
-    mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_FUNCTION_LIST_OFFSET]
-    call arraylist_free
-
-    mov eax, edx
-    call free
-
-    pop eax
-
-    ret
-
-heapflow_main:
-    call parsehf_file_data
-
-parsehf_file_data: ;esi: file data pointer ; eax: arraylist pointer
-    push bx
-
-    mov bl, byte 0x0a
-    call split_string
-
-    
-    pop bx
-    ret
-    
-
-heapflow_parse_stream: ; ebx: ptr to stream, ecx: returns flags
+heapflow_interpreter_clean: ; edx: ptr to interpreter
     push eax
     push ebx
     push edx
-
-    mov ecx, 0
-
-    call heapflow_interpreter_new
-
-    .loop:
-        call buffered_stream_get_next
-        cmp eax, byte 0
-        je .done
-
-        call heapflow_parse_line
-        jecxz .loop
-        jmp .done
-
-    .done:
 
     mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET]
     call arraylist_deep_free
@@ -103,7 +55,72 @@ heapflow_parse_stream: ; ebx: ptr to stream, ecx: returns flags
 
     .local_free_function_loop_done:
 
-    call heapflow_interpreter_free
+    pop edx
+    pop ebx
+    pop eax
+    ret
+
+heapflow_interpreter_free: ; edx: ptr
+    call heapflow_interpreter_clean
+
+    push eax
+
+    mov eax, [edx]
+    call hashmap_free
+
+    mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET]
+    call arraylist_free
+
+    mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_FUNCTION_LIST_OFFSET]
+    call arraylist_free
+
+    mov eax, edx
+    call free
+
+    pop eax
+
+    ret
+
+heapflow_parse_bufferedstream: ; ebx: ptr to stream, ecx: returns flags, edx: ptr to interpreter
+    push eax
+    push ebx
+    push edx
+
+    mov ecx, 0
+
+    .loop:
+        call buffered_stream_get_next
+        cmp eax, byte 0
+        je .done
+
+        call heapflow_parse_line
+        jecxz .loop
+        jmp .done
+
+    .done:
+
+    pop edx
+    pop ebx
+    pop eax
+    ret
+
+heapflow_parse_filestream: ; ebx: ptr to stream, ecx: returns flags, edx: ptr to interpreter
+    push eax
+    push ebx
+    push edx
+
+    mov ecx, 0
+
+    .loop:
+        call filestream_read_line
+        cmp eax, byte 0
+        je .done
+
+        call heapflow_parse_line
+        jecxz .loop
+        jmp .done
+
+    .done:
 
     pop edx
     pop ebx
@@ -199,6 +216,14 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
     pop ecx
     pop esi
     je .set
+
+    mov edi, HEAPFLOW_EXEC
+    push esi
+    push ecx
+    repe cmpsb
+    pop ecx
+    pop esi
+    je .exec
 
     mov [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET], esi ; The first argument is likely a label name. We need more registers to parse the rest of the line, so just cache it for now
 
@@ -489,6 +514,34 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
         mov [ecx], ebx
 
         jmp .done
+
+    .exec:
+        call free_esi
+        inc eax
+
+        call heapflow_skip_spaces
+        cmp [eax], byte '"'
+        je .exec_literal
+
+        call heapflow_resolve_argument
+
+        .do_exec:
+
+        mov eax, ebx
+        call get_file_descriptor
+        cmp ebx, 0
+        je .done
+
+        call filestream_new
+        call heapflow_parse_filestream
+
+        mov [edx+HEAPFLOW_INTERPRETER_RETURN_OFFSET], ecx
+
+        jmp .done
+
+        .exec_literal:
+            call heapflow_resolve_argument_p
+            jmp .do_exec
 
     ; Second-word instructions
     .equ:
