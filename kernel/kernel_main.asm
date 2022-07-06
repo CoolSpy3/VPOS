@@ -32,5 +32,5 @@ kernel_main:
     call vga_textmode_setstring
     jmp $
 
-entrypoint db 'main.hf', 0
+entrypoint db 'kernel_main.hf', 0
 entrypoint_find_fail_text db 'Entrypoint file not found!', 0
