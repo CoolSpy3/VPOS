@@ -28,3 +28,5 @@ jmp $
 %include "MMU/ram.asm"
 
 %include "MMU/padding.asm"
+
+FS_START equ $

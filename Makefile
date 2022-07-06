@@ -1,6 +1,7 @@
 ifeq ($(OS),Windows_NT)
 -include bin/boot_section.d
 -include bin/kernel.d
+-include bin/fs.d
 endif
 
 bin:
@@ -12,8 +13,11 @@ bin/boot_section.bin: bin boot_section/boot_section.asm
 bin/kernel.bin: bin kernel/kernel.asm
 	nasm kernel/kernel.asm -i kernel/ -f bin -o bin/kernel.bin -MD bin/kernel.d
 
-bin/live-image: bin/boot_section.bin bin/kernel.bin
-	cat bin/boot_section.bin bin/kernel.bin > bin/live-image
+bin/fs: bin fs/buildfs.py
+	python fs/buildfs.py fs bin/fs
+
+bin/live-image: bin/boot_section.bin bin/kernel.bin bin/fs
+	cat bin/boot_section.bin bin/kernel.bin bin/fs > bin/live-image
 
 .PHONY: build rebuild clean run debug
 
