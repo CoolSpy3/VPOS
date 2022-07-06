@@ -1,4 +1,5 @@
 PADDING_START equ $
-PADDING_LEN equ 30*512-PADDING_START
+
+PADDING_LEN equ 512 - ( ( $ - $$ ) % 512 )
 
 times PADDING_LEN db 0
