@@ -47,7 +47,6 @@ vga_textmode_setchar: ;ch: row, cl: col, dx: char_data
 vga_textmode_setstring:
     pushad
 
-
     .loop:
         mov dl, byte [ebx]
 

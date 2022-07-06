@@ -19,7 +19,6 @@ filestream_new: ; eax: file descriptor, ebx: returns ptr
 filestream_read_line: ; eax: returns next line, ebx: ptr to stream
     push esi
     push edi
-    push eax
     push ecx
 
     mov eax, [ebx+FILESTREAM_LENGTH_OFFSET]
@@ -42,15 +41,23 @@ filestream_read_line: ; eax: returns next line, ebx: ptr to stream
 
     add [ebx], ecx
 
+    cmp ecx, 0
+    je .null
+
     mov eax, 0
     call substr
-    mov ebx, edi
+    mov eax, edi
+
+    .return:
 
     pop ecx
-    pop eax
     pop edi
     pop esi
     ret
+
+    .null:
+    mov eax, 0
+    jmp .return
 
 filestream_reset: ; ebx: ptr to stream
     push edx

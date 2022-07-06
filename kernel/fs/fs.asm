@@ -12,13 +12,14 @@ get_file_descriptor: ; eax: ptr to filename, ebx: returns descriptor (null if no
     mov esi, FS_START
 
     .loop:
-        cmp esi, 0
+        cmp [esi], dword 0
         je .not_found
 
         push esi
         push edi
         push ecx
         mov esi, [esi]
+        add esi, FS_START
         cld
         repe cmpsb
         pop ecx
@@ -30,6 +31,7 @@ get_file_descriptor: ; eax: ptr to filename, ebx: returns descriptor (null if no
 
     .found:
     mov ebx, [esi+4]
+    add ebx, FS_START
     jmp .done
 
     .not_found:

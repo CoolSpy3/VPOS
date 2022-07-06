@@ -36,7 +36,7 @@ if not files:
 
     exit()
 
-headerLength = len(files) * 8 + 1
+headerLength = len(files) * 8 + 4
 nameLengths = [len(file.replace('\\', '/')) + 1 for file in files]
 fileLengths = [4 + path.getsize(path.join(dir, file)) for file in files]
 
@@ -50,13 +50,6 @@ nullByte = (0).to_bytes(1, byteorder='little', signed=False)
 
 paddingLen = 512 - ( ( fileLengths[-1] + fileOffsets[-1] ) % 512 )
 
-print(headerLength)
-print(nameLengths)
-print(fileLengths)
-print(nameOffsets)
-print(fileSectionOffset)
-print(fileOffsets)
-
 def binaryNumber(num: int) -> bytes:
     return num.to_bytes(4, byteorder='little', signed=False)
 
@@ -64,7 +57,7 @@ with open(outfile, 'wb+') as oStream:
     for i in range(len(files)):
         oStream.write(binaryNumber(nameOffsets[i]))
         oStream.write(binaryNumber(fileOffsets[i]))
-    oStream.write(nullByte)
+    oStream.write(bytes(4))
     for i in range(len(files)):
         oStream.write(bytes(files[i].replace('\\', '/'), encoding='ascii'))
         oStream.write(nullByte)

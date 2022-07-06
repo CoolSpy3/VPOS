@@ -3,181 +3,34 @@ kernel_main:
     call idt_install
     call pic_init
 
-    ; mov ch, 0 ; y
-    ; mov cl, 1 ; x
-    ; mov dl, byte 'U'=222
-    ; mov dh, byte 0x5
-    ; call vga_textmode_setchar
-
     call clear_textmode_buffer
 
-    call arraylist_new
-    mov ebx, testcode
-    call arraylist_add
-    call buffered_stream_new
+    mov eax, entrypoint
+    call get_file_descriptor
+
+    cmp ebx, 0
+    je .entrypoint_find_failed
+
+    mov eax, ebx
+    call filestream_new
+
     call heapflow_init
     call heapflow_interpreter_new
-    call heapflow_parse_bufferedstream
+
+    call heapflow_parse_filestream
+
     call heapflow_interpreter_free
-
-    ; mov eax, MEM_START
-    ; mov cl, 0
-    ; mov ch, 0
-    ; ; mov ebx, eax
-    ; mov dh, byte 0x5
-    ; call vga_textmode_showhex
-
-    ; mov eax, 11
-    ; call malloc
-    ; mov [eax], byte '*'
-    ; mov [eax+1], byte '*'
-    ; mov [eax+2], byte '*'
-    ; mov [eax+3], byte '*'
-    ; mov [eax+4], byte '*'
-    ; mov [eax+5], byte '*'
-    ; mov [eax+6], byte '*'
-    ; mov [eax+7], byte '*'
-    ; mov [eax+8], byte '*'
-    ; mov [eax+9], byte '*'
-    ; mov [eax+10], byte 0
-
-    ; mov cl, 0
-    ; mov ch, 1
-    ; ; mov ebx, eax
-    ; mov dh, byte 0x5
-    ; call vga_textmode_showhex
-
-    ; push eax
-    ; mov eax, 12
-    ; call malloc
-    ; mov ebx, eax
-    ; pop eax
-    ; mov [ebx], byte '='
-    ; mov [ebx+1], byte '='
-    ; mov [ebx+2], byte '='
-    ; mov [ebx+3], byte '='
-    ; mov [ebx+4], byte '='
-    ; mov [ebx+5], byte '='
-    ; mov [ebx+6], byte '='
-    ; mov [ebx+7], byte '='
-    ; mov [ebx+8], byte '='
-    ; mov [ebx+9], byte '='
-    ; mov [ebx+9], byte 'D'
-    ; mov [ebx+10], byte 0
-
-    ; xchg eax, ebx
-    ; mov cl, 0
-    ; mov ch, 2
-    ; ; mov ebx, eax
-    ; mov dh, byte 0x5
-    ; call vga_textmode_showhex
-    ; xchg eax, ebx
-
-    ; call free
-    ; mov eax, 5
-    ; call malloc
-    ; mov [eax], byte '6'
-    ; mov [eax+1], byte '9'
-    ; mov [eax+2], byte '6'
-    ; mov [eax+3], byte '9'
-    ; mov [eax+4], byte 0
-
-    ; mov cl, 0
-    ; mov ch, 3
-    ; ; mov ebx, eax
-    ; mov dh, byte 0x5
-    ; call vga_textmode_showhex
-
-    ; mov eax, test_string2
-    ; call hash_string
-    ; mov eax, ebx
-    ; mov cl, 0
-    ; mov ch, 4
-    ; ; mov ebx, eax
-    ; mov dh, byte 0x5
-    ; call vga_textmode_showhex
-
-    ; call VGA_write_regs
-    ; call disable_cursor
-    ; call VGA_clear_screen
-
-    ; mov bx, 10
-    ; mov ax, 10
-    ; mov cl, 1
-    ; call draw_pixel
-
-    ; mov bx, 0
-    ; draw_lp_1:
-    ; mov ax, bx
-    ; add ax, 60
-    ; mov cl, 1
-    ; call draw_pixel
-    ; mov ax, 260
-    ; sub ax, bx
-    ; mov cl, 2
-    ; call draw_pixel
-    ; inc bx
-    ; cmp bx, DISPLAY_height
-    ; jl draw_lp_1
-
-
-    ; call arraylist_new
-
-    ; mov ebx, test_string
-
-    ; mov cl, 0
-
-    ; .loop:
-    ;     call arraylist_add
-    ;     inc cl
-    ;     cmp cl, 20
-    ;     jne .loop
-
-
-    ; mov ebx, 15
-    ; call arraylist_get
-
-    ; mov esi, test_string
-    ; mov eax, 2
-    ; mov ecx, 5
-    ; call substr
-
-    ; mov ebx, edi
-    ; mov cx, 0x700
-    ; call vga_textmode_setstring
-
-    ; mov esi, test_split
-    ; mov bl, byte '.'
-    ; call split_string
-    ; mov ebx, 0
-    ; call arraylist_get
-    ; mov cx, 0x000
-    ; mov dh, 5
-    ; call vga_textmode_setstring
-    ; mov ebx, 1
-    ; call arraylist_get
-    ; mov cx, 0x100
-    ; mov dh, 5
-    ; call vga_textmode_setstring
-    ; mov ebx, 2
-    ; call arraylist_get
-    ; mov cx, 0x200
-    ; mov dh, 5
-    ; call vga_textmode_setstring
-    ; mov ebx, 3
-    ; call arraylist_get
-    ; mov cx, 0x300
-    ; mov dh, 5
-    ; call vga_textmode_setstring
 
     .return:
 
     ret
 
-testcode db "set 0xB8000 (0x05 << 8) | '0'", 0
-test_split db 'a.bb.ccc.dddd', 0
-test_string2 db 'Password', 0
+.entrypoint_find_failed:
+    mov ebx, entrypoint_find_fail_text
+    mov cx, 0x000
+    mov dh, 7
+    call vga_textmode_setstring
+    jmp $
 
-test_string db 'test12323', 0
-fail_string db 'fail', 0
-works db 'works', 0
+entrypoint db 'main.hf', 0
+entrypoint_find_fail_text db 'Entrypoint file not found!', 0
