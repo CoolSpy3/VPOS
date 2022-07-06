@@ -13,8 +13,13 @@ bin/boot_section.bin: bin boot_section/boot_section.asm
 bin/kernel.bin: bin kernel/kernel.asm
 	nasm kernel/kernel.asm -i kernel/ -f bin -o bin/kernel.bin -MD bin/kernel.d
 
+ifeq ($(OS),Windows_NT)
 bin/fs: bin fs/buildfs.py
 	python fs/buildfs.py fs bin/fs
+else
+bin/fs: bin fs/buildfs.py
+	python3 fs/buildfs.py fs bin/fs
+endif
 
 bin/live-image: bin/boot_section.bin bin/kernel.bin bin/fs
 	cat bin/boot_section.bin bin/kernel.bin bin/fs > bin/live-image
