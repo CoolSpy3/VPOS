@@ -100,6 +100,9 @@ trim_string: ; eax: ptr to string, returns ptr to new string
     call str_len
     mov ecx, eax
 
+    cmp [esi], byte 0
+    je .skip_trailing_loop
+
     cmp [esi], byte ' '
     ja .skip_leading_loop
 
