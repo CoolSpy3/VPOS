@@ -8,7 +8,7 @@
 ;              CH,DH,CL = CHS of following sector
 ;         CF=1 AH       = Error status
 ;              CH,DH,CL = CHS of problem sector
-disk_load:
+disk_load: ; Credit: Sep Roland on https://stackoverflow.com/questions/30990880/how-are-all-disk-sectors-iterated-in-assembly
     push    es
     push    di
     push    bp
