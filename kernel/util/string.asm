@@ -109,10 +109,15 @@ trim_string: ; eax: ptr to string, returns ptr to new string
     .leading_loop:
         inc esi
         dec ecx
+        cmp [esi], byte 0
+        je .skip_leading_loop
         cmp [esi], byte ' '
         jbe .leading_loop
 
     .skip_leading_loop:
+
+    cmp [esi], byte 0
+    je .skip_trailing_loop
 
     mov edi, esi
     add edi, ecx

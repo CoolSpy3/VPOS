@@ -31,10 +31,13 @@ filestream_read_line: ; eax: returns next line, ebx: ptr to stream
         cmp esi, eax
         jae .done
         cmp [esi], byte 0xA
-        je .done
+        je .lf
         inc esi
         inc ecx
         jmp .loop
+
+    .lf:
+    inc dword [ebx]
 
     .done:
     pop esi
