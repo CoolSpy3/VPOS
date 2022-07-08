@@ -4,7 +4,7 @@ heapflow_init:
 
     mov eax, HEAPFLOW_ARGS
     call hash_string
-    mov [HEAPFLOW_ARGS], ebx
+    mov [HEAPFLOW_ARGS_HASH], ebx
 
     pop ebx
     pop eax
