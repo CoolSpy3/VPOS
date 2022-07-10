@@ -27,18 +27,18 @@ hashmap_get_addr: ; eax: ptr to hashmap, ebx: key, returns ptr to value
 
     mov ecx, 0
     .loop:
-    cmp ebx, [eax]
-    je .found
-    add eax, 8
-    add ecx, 1
-    cmp ecx, edx
-    jb .loop
+        cmp ebx, [eax]
+        je .found
+        add eax, 8
+        inc ecx
+        cmp ecx, edx
+        jb .loop
 
     mov ebx, 0
 
     .done:
+    pop edx
     pop ecx
-    pop ebx
     pop eax
     ret
 

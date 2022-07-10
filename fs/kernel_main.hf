@@ -1,10 +1,10 @@
-; exec "HAL/idt.hf"
-; exec "HAL/pic.hf"
-; exec "HAL/pci.hf"
-; exec "HAL/ata.hf"
-set 0xb8000 0x758
-; basic_print lptf
-;     set 0xb8000 0x758
-; end
+exec "HAL/idt.hf"
+exec "HAL/pic.hf"
+exec "HAL/pci.hf"
+exec "HAL/ata.hf"
+; set 0xb8000 0x758
+basic_print lptf
+    set 0xb8000 0x758
+end
 
-; basic_print jmp
+basic_print jmp

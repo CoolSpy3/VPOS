@@ -20,7 +20,6 @@ jmp $
 %include "graphics_drivers/vga_serial_driver.asm"
 %include "graphics_drivers/vga_textmode_driver.asm"
 %include "util/arraylist.asm"
-%include "util/bufferedstream.asm"
 %include "util/hashmap.asm"
 %include "util/panic.asm"
 %include "util/string.asm"

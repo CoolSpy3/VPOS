@@ -4,7 +4,12 @@ heapflow_function_new: ; ebx: returns ptr, ecx: ptr to lines, edx: ptr to ctx
     mov eax, HEAPFLOW_FUNCTION_LENGTH
     call malloc
 
-    mov [eax], ecx
+    push eax
+    call heapflow_function_create_virtual_file
+    call filestream_new
+    pop eax
+
+    mov [eax], ebx
     mov [eax+HEAPFLOW_FUNCTION_CTX_OFFSET], edx
 
     mov ebx, eax
@@ -61,10 +66,9 @@ heapflow_function_call_with_params: ; eax: ptr to params, ebx: ptr to function, 
     pop edi
     pop esi
 
-    mov eax, [ebx]
-    call buffered_stream_new
+    mov ebx, [ebx]
 
-    call heapflow_parse_bufferedstream
+    call heapflow_parse_filestream
     call heapflow_interpreter_clean
 
     ; Restore the interpreter state
@@ -81,11 +85,92 @@ heapflow_function_call_with_params: ; eax: ptr to params, ebx: ptr to function, 
     pop eax
     ret
 
+heapflow_function_create_virtual_file: ; eax: returns file descriptor, ecx: ptr to lines
+    push ebx
+    push ecx
+    push esi
+    push edi
+
+    mov eax, ecx
+    mov ebx, 0
+    mov ecx, 4
+    add ecx, [eax]
+
+    .loop1:
+        cmp ebx, [eax]
+        je .loop1_done
+
+        push ebx
+        call arraylist_get
+
+        push eax
+        mov edi, ebx
+        call str_len
+        add ecx, eax
+        pop eax
+
+        pop ebx
+
+        inc ebx
+        jmp .loop1
+
+    .loop1_done:
+
+    push eax
+    mov eax, ecx
+    call malloc
+    mov edi, eax
+    pop eax
+
+    push edi
+
+    mov [edi], ecx
+    add edi, 4
+
+    mov ebx, 0
+
+    .loop2:
+        cmp ebx, [eax]
+        je .loop2_done
+
+        push ebx
+        call arraylist_get
+
+        call str_len_gr
+        mov esi, ebx
+
+        cld
+        rep movsb
+
+        mov [edi], byte 0xA
+        inc edi
+
+        pop ebx
+
+        inc ebx
+        jmp .loop2
+
+    .loop2_done:
+
+    call arraylist_deep_free
+
+    mov [edi-1], byte 0
+
+    pop edi
+
+    mov eax, edi
+
+    pop edi
+    pop esi
+    pop ecx
+    pop ebx
+    ret
+
 heapflow_function_free: ; ebx: ptr to function
     push eax
 
     mov eax, [ebx]
-    call arraylist_deep_free
+    call free
 
     mov eax, [ebx+HEAPFLOW_FUNCTION_CTX_OFFSET]
     call hashmap_free

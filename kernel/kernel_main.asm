@@ -21,6 +21,9 @@ kernel_main:
 
     call heapflow_interpreter_free
 
+    mov eax, ebx
+    call free
+
     .return:
 
     ret

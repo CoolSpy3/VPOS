@@ -139,6 +139,25 @@ free: ; eax: ptr to memory
     .try_return: ; general return from try_merge_blocks
     ret
 
+validate_memory:
+    pushad
+
+    mov eax, MEM_START
+
+    mov ebx, 0
+
+    .loop:
+        cmp [eax], word 0
+        je panic
+
+        mov bx, [eax]
+        add eax, ebx
+        cmp eax, MEM_END
+        jb .loop
+
+    popad
+    ret
+
 
 HEAP_PTR dd MEM_START
 BLOCK_HEADER_LENGTH equ 2+2+1 ; length (including header), in use

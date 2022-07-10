@@ -81,29 +81,6 @@ heapflow_interpreter_free: ; edx: ptr
 
     ret
 
-heapflow_parse_bufferedstream: ; ebx: ptr to stream, ecx: returns flags, edx: ptr to interpreter
-    push eax
-    push ebx
-    push edx
-
-    mov ecx, 0
-
-    .loop:
-        call buffered_stream_get_next
-        cmp eax, byte 0
-        je .done
-
-        call heapflow_parse_line
-        jecxz .loop
-        jmp .done
-
-    .done:
-
-    pop edx
-    pop ebx
-    pop eax
-    ret
-
 heapflow_parse_filestream: ; ebx: ptr to stream, ecx: returns flags, edx: ptr to interpreter
     push eax
     push ebx
@@ -532,8 +509,10 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
         cmp ebx, 0
         je .done
 
+        mov eax, ebx
         call filestream_new
         call heapflow_parse_filestream
+        call free_ebx
 
         mov [edx+HEAPFLOW_INTERPRETER_RETURN_OFFSET], ecx
 
@@ -582,15 +561,16 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
 
     .ptf:
         call free_esi
+        cmp [eax], byte 0
+        je .ptf_skip_inc_eax
         inc eax
+        .ptf_skip_inc_eax:
 
-        mov ebx, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
-
-        push ebx
         call heapflow_resolve_argument_f
         mov eax, [edx]
         mov edx, ebx
-        pop ebx
+
+        mov ebx, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
 
         call hashmap_put
 
@@ -628,17 +608,18 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
 
     .lptf:
         call free_esi
+        cmp [eax], byte 0
+        je .lptf_skip_inc_eax
         inc eax
-
-        mov ebx, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+        .lptf_skip_inc_eax:
 
         push edx
 
-        push ebx
         call heapflow_resolve_argument_f
         mov eax, [edx]
         mov edx, ebx
-        pop ebx
+
+        mov ebx, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
 
         call hashmap_put
 
@@ -709,7 +690,10 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
 
     .jmp:
         call free_esi
+        cmp [eax], byte 0
+        je .jmp_skip_inc_eax
         inc eax
+        .jmp_skip_inc_eax:
 
         push eax
         call arraylist_new
@@ -1567,6 +1551,9 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
     mov ecx, eax
     pop eax
 
+    cmp [eax], byte 0
+    je .skip_loop1
+
     push ebx
 
     .loop1:
@@ -1601,6 +1588,8 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
 
     pop ebx
 
+    .skip_loop1:
+
     mov edx, ecx
 
     call arraylist_new
@@ -1610,7 +1599,7 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
     mov edx, 0
 
     .loop2:
-        call buffered_stream_get_next
+        call filestream_read_line
         cmp [eax], byte 0
         je .loop2_done
         call trim_string
