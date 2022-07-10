@@ -568,9 +568,9 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
 
         call heapflow_resolve_argument_f
         mov eax, [edx]
-        mov edx, ebx
 
-        mov ebx, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+        mov edx, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+        xchg ebx, edx
 
         call hashmap_put
 
@@ -617,9 +617,9 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
 
         call heapflow_resolve_argument_f
         mov eax, [edx]
-        mov edx, ebx
 
-        mov ebx, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+        mov edx, [edx+HEAPFLOW_INTERPRETER_CACHE_OFFSET]
+        xchg ebx, edx
 
         call hashmap_put
 

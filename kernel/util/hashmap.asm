@@ -44,6 +44,7 @@ hashmap_get_addr: ; eax: ptr to hashmap, ebx: key, returns ptr to value
 
     .found:
     mov ebx, eax
+    add ebx, 4
     jmp .done
 
 hashmap_get: ; eax: ptr to hashmap, ebx: key, returns value
@@ -143,21 +144,21 @@ hash_string: ; eax: ptr to string, ebx: returns hash
     mov ebx, 0
 
     .loop:
-    cmp [eax], byte 0
-    je .done
+        cmp [eax], byte 0
+        je .done
 
-    mov ecx, ebx
-    mov edx, [eax]
-    shl ecx, 6
-    add edx, ecx
-    shl ecx, 10
-    add edx, ecx
-    sub edx, ebx
-    mov ebx, edx
+        mov ecx, ebx
+        mov edx, 0
+        mov dl, [eax]
+        shl ecx, 6
+        add edx, ecx
+        shl ecx, 10
+        add edx, ecx
+        sub edx, ebx
+        mov ebx, edx
 
-    inc eax
-    jmp .loop
-
+        inc eax
+        jmp .loop
 
     .done:
     pop edx
