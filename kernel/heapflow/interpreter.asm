@@ -13,11 +13,22 @@ heapflow_init:
 heapflow_interpreter_new: ; edx: returns ptr
     push eax
 
+    call hashmap_new
+    call heapflow_interpreter_new_with_ctx
+
+    pop eax
+    ret
+
+
+heapflow_interpreter_new_with_ctx: ; eax: ptr to ctx, edx: returns ptr
+    push eax
+
+    push eax
     mov eax, HEAPFLOW_INTERPRETER_LENGTH
     call malloc
     mov edx, eax
+    pop eax
 
-    call hashmap_new
     mov [edx], eax
 
     call arraylist_new

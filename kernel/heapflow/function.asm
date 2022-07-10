@@ -31,15 +31,13 @@ heapflow_function_call_with_params: ; eax: ptr to params, ebx: ptr to function, 
     push eax
     push ebx
     push edx
-    push esi
-    push edx
 
     ; Create a new context for the function
     push eax
     push ebx
     mov eax, [ebx+HEAPFLOW_FUNCTION_CTX_OFFSET]
     call hashmap_copy
-    mov eax, ebx
+    mov edx, ebx
     pop ebx
     pop eax
 
@@ -48,38 +46,23 @@ heapflow_function_call_with_params: ; eax: ptr to params, ebx: ptr to function, 
     push edx
     mov ebx, [HEAPFLOW_ARGS_HASH]
     mov edx, [eax+ARRAYLIST_DATA_OFFSET]
+    mov eax, edx
     call hashmap_put_data
     pop edx
     pop ebx
 
-    ; Backup the interpreter state
-    mov esi, edx
-    push eax
-    mov eax, HEAPFLOW_INTERPRETER_BKUP_LENGTH
-    call malloc
-    mov edi, eax
-    pop eax
-    mov ecx, HEAPFLOW_INTERPRETER_BKUP_LENGTH
-    push esi
-    push edi
-    rep movsb
-    pop edi
-    pop esi
+    ; Create a new interpreter for the function
+    mov eax, edx
+    call heapflow_interpreter_new_with_ctx
 
+    ; Call the function
     mov ebx, [ebx]
 
     call heapflow_parse_filestream
-    call heapflow_interpreter_clean
 
-    ; Restore the interpreter state
-    push ecx
-    mov ecx, HEAPFLOW_INTERPRETER_BKUP_LENGTH
-    xchg esi, edi
-    rep movsb
-    pop ecx
+    ; Free the interpreter
+    call heapflow_interpreter_free
 
-    pop edi
-    pop esi
     pop edx
     pop ebx
     pop eax
@@ -184,7 +167,3 @@ heapflow_function_free: ; ebx: ptr to function
 
 HEAPFLOW_FUNCTION_LENGTH equ 4 + 4 ; (lines + ctx)
 HEAPFLOW_FUNCTION_CTX_OFFSET equ 4
-HEAPFLOW_INTERPRETER_BKUP_LENGTH equ 4 + 4 + 4 + 4 ; (context + local ptrs + local functions + return cache + general cache)
-HEAPFLOW_INTERPRETER_BKUP_LOCAL_LIST_OFFSET equ 4
-HEAPFLOW_INTERPRETER_BKUP_LOCAL_FUNCTION_LIST_OFFSET equ 4 + 4
-HEAPFLOW_INTERPRETER_BKUP_CACHE_OFFSET equ 4 + 4 + 4

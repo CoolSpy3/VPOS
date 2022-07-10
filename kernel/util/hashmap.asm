@@ -95,7 +95,6 @@ hashmap_put_data: ; eax: ptr to hashmap, ebx: key, edx: val
     add [eax+HASHMAP_ALLOCATED_SIZE_OFFSET], dword HASHMAP_DEFAULT_SIZE
     mov eax, [eax+HASHMAP_ALLOCATED_SIZE_OFFSET]
     shl eax, 3
-    add eax, HASHMAP_DEFAULT_DATA_LENGTH
     call malloc
     mov esi, [edx+HASHMAP_DATA_OFFSET]
     mov edi, eax
@@ -203,7 +202,7 @@ hashmap_copy: ; eax: ptr to hashmap, ebx: returns ptr to new hashmap
 
 
 HASHMAP_LENGTH equ 4 + 4 + 4 ; (size + allocated size + data ptr)
-HASHMAP_ALLOCATED_SIZE_OFFSET equ 4 + 4 ; (size + data ptr)
+HASHMAP_ALLOCATED_SIZE_OFFSET equ 4 ; (size + data ptr)
 HASHMAP_DATA_OFFSET equ 4 + 4
 HASHMAP_DEFAULT_SIZE equ 10
 HASHMAP_DEFAULT_DATA_LENGTH equ HASHMAP_DEFAULT_SIZE * 8
