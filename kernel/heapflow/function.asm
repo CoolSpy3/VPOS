@@ -52,7 +52,7 @@ heapflow_function_call_with_params: ; eax: ptr to params, ebx: ptr to function, 
     pop ebx
 
     ; Create a new interpreter for the function
-    mov eax, edx
+    ; edx already contains the ctx from xchg above
     call heapflow_interpreter_new_with_ctx
 
     ; Call the function
