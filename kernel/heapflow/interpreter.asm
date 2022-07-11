@@ -1910,6 +1910,8 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
         ret
 
 heapflow_skip_spaces: ; eax: ptr to line (will be updated to point to a non-space character)
+    cmp [eax], byte 0
+    je .skip
     cmp [eax], byte ' '
     ja .skip
     inc eax

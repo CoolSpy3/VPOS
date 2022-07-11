@@ -122,6 +122,7 @@ hashmap_put_data: ; eax: ptr to hashmap, ebx: key, edx: val
     .do_put:
     mov [ecx], ebx
     mov [ecx+4], edx
+    inc dword [eax]
 
     pop ecx
     ret
