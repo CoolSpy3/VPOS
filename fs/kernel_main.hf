@@ -4,7 +4,7 @@ exec "HAL/pci.hf"
 exec "HAL/ata.hf"
 ; set 0xb8000 0x758
 basic_print lptf
-    set 0xb8000 0x758
+    set 0xb8000 [args]
 end
 
-basic_print jmp
+basic_print jmp 0x758

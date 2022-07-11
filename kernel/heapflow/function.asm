@@ -45,8 +45,8 @@ heapflow_function_call_with_params: ; eax: ptr to params, ebx: ptr to function, 
     push ebx
     push edx
     mov ebx, [HEAPFLOW_ARGS_HASH]
-    mov edx, [eax+ARRAYLIST_DATA_OFFSET]
-    mov eax, edx
+    mov eax, [eax+ARRAYLIST_DATA_OFFSET]
+    xchg eax, edx
     call hashmap_put_data
     pop edx
     pop ebx
