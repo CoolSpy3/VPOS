@@ -6,9 +6,15 @@ exec "HAL/ata.hf"
 
 white equ 0x700
 char equ 'X'
+char_two equ 'Y'
 
 basic_print lptf white
     set 0xb8000 [args] | white
 end
 
+basic_print_two lptf white
+    set 0xb8000 [args] | white
+end
+
 basic_print jmp char
+basic_print_two jmp char_two
