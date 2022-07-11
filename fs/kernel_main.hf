@@ -2,19 +2,9 @@ exec "HAL/idt.hf"
 exec "HAL/pic.hf"
 exec "HAL/pci.hf"
 exec "HAL/ata.hf"
+exec "graphics_drivers/vga_textmode_driver.hf"
 ; set 0xb8000 0x758
-
-white equ 0x700
+color equ 0x700 
 char equ 'X'
-char_two equ 'Y'
 
-basic_print lptf white
-    set 0xb8000 [args] | white
-end
-
-basic_print_two lptf white
-    set 0xb8000 [args] | white
-end
-
-basic_print jmp char
-basic_print_two jmp char_two
+vga_textmode_setchar jmp 1 1 char color

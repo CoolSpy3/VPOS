@@ -1,0 +1,4 @@
+vga_textmode_setchar ptf
+    video_memory_addr lpt 0xb8000 + ([args] * 160) + ([args + 4] * 2)
+    set [video_memory_addr] [args+8]|[args+12]|([[video_memory_addr]]&0xFF00)
+end
