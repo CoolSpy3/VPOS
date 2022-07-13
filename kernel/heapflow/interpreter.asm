@@ -1621,7 +1621,7 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         call free_ebx
         pop ebx
         cmp [eax], byte 0
-        je .loop2_done
+        je .loop2_free_continue
 
         mov esi, eax
         mov edi, HEAPFLOW_END
@@ -1685,6 +1685,10 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         cmp edx, 0
         je .loop2_done
         dec edx
+        jmp .loop2
+
+        .loop2_free_continue:
+        call free
         jmp .loop2
 
     .loop2_done:
