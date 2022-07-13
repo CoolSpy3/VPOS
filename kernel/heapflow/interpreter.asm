@@ -101,14 +101,16 @@ heapflow_parse_filestream: ; ebx: ptr to stream, ecx: returns flags, edx: ptr to
 
     .loop:
         call filestream_read_line
-        cmp eax, byte 0
+        cmp [eax], byte 0
         je .done
 
         call heapflow_parse_line
+        call free
         jecxz .loop
         jmp .done
 
     .done:
+    call free
 
     pop edx
     pop ebx
@@ -1612,10 +1614,14 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
     .loop2:
         call filestream_read_line
         cmp [eax], byte 0
-        je .loop2_done
+        je .loop2_done ; EOF (Shouldn't happen)
+        push ebx
+        mov ebx, eax
         call trim_string
+        call free_ebx
+        pop ebx
         cmp [eax], byte 0
-        je .loop2_trim_done
+        je .loop2_done
 
         mov esi, eax
         mov edi, HEAPFLOW_END
@@ -1640,21 +1646,18 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         call arraylist_get
 
         mov esi, ebx
-        call str_len_gr
 
         mov edi, HEAPFLOW_PTF
+        mov ecx, 4
         push esi
-        push ecx
         repe cmpsb
-        pop ecx
         pop esi
         je .handle_function
 
         mov edi, HEAPFLOW_LPTF
+        mov ecx, 5 ; length of "lptf" + null byte
         push esi
-        push ecx
         repe cmpsb
-        pop ecx
         pop esi
         jne .add_line
 
@@ -1684,10 +1687,8 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         dec edx
         jmp .loop2
 
-    .loop2_trim_done:
-    call free
-
     .loop2_done:
+    call free
 
     pop edx
 

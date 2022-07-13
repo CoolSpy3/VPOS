@@ -75,7 +75,7 @@ malloc: ; eax: size, returns ptr
     jmp .find_and_allocate_memory ; try to allocate the next block
 
     .search_from_start:
-    mov ebx, [HEAP_PTR]
+    mov ebx, MEM_START
     jmp .find_and_allocate_memory
 
 free: ; eax: ptr to memory

@@ -27,9 +27,6 @@ filestream_read_line: ; eax: returns next line, ebx: ptr to stream
     mov esi, [ebx]
     mov ecx, 0
 
-    cmp esi, eax
-    jae .null
-
     push esi
     .loop:
         cmp esi, eax
@@ -52,16 +49,10 @@ filestream_read_line: ; eax: returns next line, ebx: ptr to stream
     call substr
     mov eax, edi
 
-    .return:
-
     pop ecx
     pop edi
     pop esi
     ret
-
-    .null:
-    mov eax, 0
-    jmp .return
 
 filestream_reset: ; ebx: ptr to stream
     push edx
