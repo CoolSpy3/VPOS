@@ -103,7 +103,10 @@ arraylist_deep_free: ; eax: ptr to arraylist
     jecxz .skip_loop
 
     .loop:
+        push eax
+        mov eax, [eax]
         call free
+        pop eax
         add eax, 4
         dec ecx
         jnz .loop

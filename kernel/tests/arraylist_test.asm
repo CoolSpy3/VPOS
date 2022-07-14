@@ -15,6 +15,11 @@ arraylist_test:
     mov ebx, 15
     call arraylist_get
 
+    mov cx, 0
+    mov dh, 5
+
+    call vga_textmode_setstring
+
     ret
 
 

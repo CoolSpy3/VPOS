@@ -7,7 +7,7 @@ vga_log_space:
 vga_log_newline:
     add [vga_log_col], byte 12
     mov [vga_log_row], byte 0
-    cmp [vga_log_col], byte 80
+    cmp [vga_log_col], byte 80-8
     jae vga_log_reset
     ret
 
