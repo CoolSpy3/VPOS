@@ -2,6 +2,8 @@ exec "HAL/idt.hf"
 exec "HAL/pic.hf"
 exec "HAL/pci.hf"
 exec "HAL/ata.hf"
+; exec "util/string.hf"
+; exec "util/arraylist.hf"
 ; set 0xb8000 0x758
 
 white equ 0x700
