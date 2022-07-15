@@ -8,7 +8,7 @@ malloc: ; eax: size, returns ptr
     ja panic
 
     push ebx
-    mov ebx, [HEAP_PTR]
+    mov ebx, MEM_START
     call .find_and_allocate_memory
     pop ebx
     push eax
@@ -157,6 +157,29 @@ validate_memory:
 
     popad
     ret
+
+validate_memory2:
+    pushad
+
+    mov eax, MEM_START
+
+    mov ebx, 0
+
+    .loop:
+        cmp [eax], word 0
+        je .panic
+
+        mov bx, [eax]
+        add eax, ebx
+        cmp eax, MEM_END
+        jb .loop
+
+    popad
+    ret
+
+    .panic:
+    mov [0xb8000], word 'Q' | 0x700
+    jmp $
 
 
 HEAP_PTR dd MEM_START

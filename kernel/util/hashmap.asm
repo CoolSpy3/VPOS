@@ -96,9 +96,9 @@ hashmap_put_data: ; eax: ptr to hashmap, ebx: key, edx: val
     mov eax, [eax+HASHMAP_ALLOCATED_SIZE_OFFSET]
     shl eax, 3
     call malloc
-    mov esi, [edx+HASHMAP_DATA_OFFSET]
+    mov esi, [ecx+HASHMAP_DATA_OFFSET]
     mov edi, eax
-    mov ecx, [edx]
+    mov ecx, [ecx]
     shl ecx, 1
     cld
     rep movsd

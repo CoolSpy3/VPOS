@@ -2,8 +2,8 @@ exec "HAL/idt.hf"
 exec "HAL/pic.hf"
 exec "HAL/pci.hf"
 exec "HAL/ata.hf"
-; exec "util/string.hf"
-; exec "util/arraylist.hf"
+exec "util/string.hf"
+exec "util/arraylist.hf"
 exec "graphics_drivers/vga_textmode_driver.hf"
 
 ; set 0xb8000 0x758
