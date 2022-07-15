@@ -100,8 +100,10 @@ hashmap_put_data: ; eax: ptr to hashmap, ebx: key, edx: val
     mov edi, eax
     mov ecx, [ecx]
     shl ecx, 1
+    push edi
     cld
     rep movsd
+    pop edi
     pop eax
 
     push eax
