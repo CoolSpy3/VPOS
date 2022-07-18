@@ -1,5 +1,5 @@
 MEM_START equ $
-MEM_LEN equ 10*512 ; bytes
+MEM_LEN equ 25*512 ; bytes
 
 initial_memory_header:
     dw MEM_LEN ; length (size of free memory)

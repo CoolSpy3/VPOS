@@ -1,29 +1,39 @@
 vga_log_space:
+    pushfd
     add [vga_log_row], byte 1
     cmp [vga_log_row], byte 25
-    jae vga_log_newline
+    jae vga_log_newline.with_flags
+    popfd
     ret
 
 vga_log_newline:
+    pushfd
+    .with_flags:
     add [vga_log_col], byte 12
     mov [vga_log_row], byte 0
     cmp [vga_log_col], byte 80-8
-    jae vga_log_reset
+    jae vga_log_reset.with_flags
+    popfd
     ret
 
 vga_log_reset:
+    pushfd
+    .with_flags:
     mov [vga_log_col], byte 0
     mov [vga_log_row], byte 0
     call clear_textmode_buffer
+    popfd
     ret
 
 vga_log_eax:
     pusha
+    pushfd
     mov cl, [vga_log_col]
     mov ch, [vga_log_row]
     mov dh, 0x5
     call vga_textmode_showhex
     call vga_log_space
+    popfd
     popa
     ret
 
@@ -50,8 +60,10 @@ vga_log_edx:
 
 vga_log_al:
     push eax
+    pushfd
     and eax, 0xFF
     call vga_log_eax
+    popfd
     pop eax
     ret
 
@@ -110,6 +122,7 @@ vga_log_byte_at_edx:
 vga_dump_mem_at_eax:
     push eax
     push ecx
+    pushfd
     mov ecx, 0
 
     .loop:
@@ -119,6 +132,7 @@ vga_dump_mem_at_eax:
         cmp ecx, 20
         jb .loop
 
+    popfd
     pop ecx
     pop eax
     ret

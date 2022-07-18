@@ -91,14 +91,12 @@ arraylist_free: ; eax: ptr to arraylist
     call free
     ret
 
-arraylist_deep_free: ; eax: ptr to arraylist
+arraylist_clear_with_free: ; eax: ptr to arraylist
     push eax
     push ecx
 
     mov ecx, [eax]
     mov eax, [eax+ARRAYLIST_DATA_OFFSET]
-
-    push eax
 
     jecxz .skip_loop
 
@@ -113,13 +111,13 @@ arraylist_deep_free: ; eax: ptr to arraylist
 
     .skip_loop:
 
-    pop eax
-
-    call free
-
     pop ecx
     pop eax
-    call free
+    ret
+
+arraylist_deep_free: ; eax: ptr to arraylist
+    call arraylist_clear_with_free
+    call arraylist_free
     ret
 
 arraylist_copy: ; eax: ptr to arraylist, ebx: returns ptr to new arraylist

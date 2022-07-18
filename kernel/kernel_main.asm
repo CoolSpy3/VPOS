@@ -28,12 +28,12 @@ kernel_main:
 
     ret
 
-.entrypoint_find_failed:
-    mov ebx, entrypoint_find_fail_text
-    mov cx, 0x000
-    mov dh, 7
-    call vga_textmode_setstring
-    jmp $
+    .entrypoint_find_failed:
+        mov ebx, entrypoint_find_fail_text
+        mov cx, 0x000
+        mov dh, 7
+        call vga_textmode_setstring
+        jmp $
 
 entrypoint db 'kernel_main.hf', 0
 entrypoint_find_fail_text db 'Entrypoint file not found!', 0

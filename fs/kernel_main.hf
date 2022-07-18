@@ -7,7 +7,8 @@ exec "util/arraylist.hf"
 exec "graphics_drivers/vga_textmode_driver.hf"
 
 ; set 0xb8000 0x758
-color equ 0x700 
+color equ 0x700
 char equ 'X'
 
 vga_textmode_setchar jmp 1 1 char color
+vga_textmode_setchar jmp 1 1 'Y' color

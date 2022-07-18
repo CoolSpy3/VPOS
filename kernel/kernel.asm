@@ -14,6 +14,7 @@ jmp $
 %include "heapflow/function.asm"
 %include "heapflow/interpreter.asm"
 %include "MMU/malloc.asm"
+%include "MMU/malloc_debug_tools.asm"
 %include "fs/filestream.asm"
 %include "fs/fs.asm"
 %include "graphics_drivers/vga_logger.asm"

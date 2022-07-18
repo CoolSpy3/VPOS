@@ -48,9 +48,9 @@ heapflow_interpreter_clean: ; edx: ptr to interpreter
     push edx
 
     mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET]
-    call arraylist_deep_free
+    call arraylist_clear_with_free
 
-    mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_LIST_OFFSET]
+    mov eax, [edx+HEAPFLOW_INTERPRETER_LOCAL_FUNCTION_LIST_OFFSET]
     mov ebx, [eax]
     mov eax, [eax+ARRAYLIST_DATA_OFFSET]
 
@@ -107,10 +107,12 @@ heapflow_parse_filestream: ; ebx: ptr to stream, ecx: returns flags, edx: ptr to
         call heapflow_parse_line
         call free
         jecxz .loop
-        jmp .done
+        jmp .done_no_free
 
     .done:
     call free
+
+    .done_no_free:
 
     pop edx
     pop ebx
@@ -742,7 +744,6 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
 
         call heapflow_function_call_with_params
 
-        mov eax, edx
         call free
 
         and ecx, ~HEAPFLOW_RETURN_FLAG
@@ -1683,7 +1684,7 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         .handle_end:
         call free
         cmp edx, 0
-        je .loop2_done
+        je .loop2_done_no_free
         dec edx
         jmp .loop2
 
@@ -1693,6 +1694,8 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
 
     .loop2_done:
     call free
+
+    .loop2_done_no_free:
 
     pop edx
 
@@ -1864,6 +1867,7 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
         call free_ebx
         mov ebx, edx
         pop edx
+        inc ebx
         ret
 
         .char_escape:
