@@ -2,3 +2,16 @@ vga_textmode_setchar ptf
     video_memory_addr equ 0xb8000 + ([args] * 160) + ([args + 4] * 2)
     set video_memory_addr [args+8]|[args+12]|([video_memory_addr]&0xFF00)
 end
+
+vga_textmode_setstring ptf vga_textmode_setchar
+    x lpt [args]
+    y equ [args+4]
+    string lpt [args+8]
+    color equ [args+12]
+    loop lptf x y string color
+        vga_textmode_setchar jmp x y [string] & 0xFF color
+        set x [x] + 1
+        set string [string] + 1
+    end
+    loop while ([[string]] & 0xFF) != 0
+end

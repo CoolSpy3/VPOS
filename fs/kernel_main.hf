@@ -8,7 +8,11 @@ exec "graphics_drivers/vga_textmode_driver.hf"
 
 ; set 0xb8000 0x758
 color equ 0x700
-char equ 'X'
+; char equ 'X'
 
-vga_textmode_setchar jmp 1 1 char color
-vga_textmode_setchar jmp 1 1 'Y' color
+; vga_textmode_setchar jmp 1 1 char color
+; vga_textmode_setchar jmp 1 1 'Y' color
+
+string lpt "Hello, world!"
+
+vga_textmode_setstring jmp 1 1 string color

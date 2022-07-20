@@ -1682,9 +1682,13 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
         jmp .loop2
 
         .handle_end:
-        call free
         cmp edx, 0
-        je .loop2_done_no_free
+        je .loop2_done
+        push ebx
+        mov ebx, eax
+        mov eax, ecx
+        call arraylist_add
+        pop ebx
         dec edx
         jmp .loop2
 
@@ -1694,8 +1698,6 @@ heapflow_resolve_argument_f: ; eax: ptr to line, ebx: ptr to stream, returns val
 
     .loop2_done:
     call free
-
-    .loop2_done_no_free:
 
     pop edx
 
@@ -1867,7 +1869,7 @@ heapflow_resolve_argument_i: ; eax: ptr to line (will be updated to point to n <
         call free_ebx
         mov ebx, edx
         pop edx
-        inc ebx
+        inc eax
         ret
 
         .char_escape:
