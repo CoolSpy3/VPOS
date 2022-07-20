@@ -57,6 +57,7 @@ heapflow_function_call_with_params: ; eax: ptr to params, ebx: ptr to function, 
 
     ; Call the function
     mov ebx, [ebx]
+    call filestream_reset
 
     call heapflow_parse_filestream
 
