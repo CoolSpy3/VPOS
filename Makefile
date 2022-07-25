@@ -24,7 +24,11 @@ endif
 bin/live-image: bin/boot_section.bin bin/kernel.bin bin/fs
 	cat bin/boot_section.bin bin/kernel.bin bin/fs > bin/live-image
 
-.PHONY: build rebuild clean run debug
+bin/disk.vdi: bin/live-image
+	rm -f bin/disk.vdi
+	VBoxManage convertfromraw bin/live-image bin/disk.vdi --format VMDK --uuid=a39e995d-b264-448c-b706-55884f79253c
+
+.PHONY: build rebuild clean run debug disk run-vm
 
 build: bin/live-image
 
@@ -38,3 +42,8 @@ run: bin/live-image
 
 debug: bin/live-image
 	qemu-system-i386 -D ./log.txt -d guest_errors -drive format=raw,file=bin/live-image
+
+disk: bin/disk.vdi
+
+run-vm: bin/disk.vdi
+	VBoxManage startvm VPOS
