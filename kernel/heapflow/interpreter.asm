@@ -62,6 +62,7 @@ heapflow_interpreter_clean: ; edx: ptr to interpreter
         call heapflow_function_free
         pop eax
         add eax, 4
+        dec ebx
         jmp .local_free_function_loop
 
     .local_free_function_loop_done:
@@ -120,13 +121,17 @@ heapflow_parse_filestream: ; ebx: ptr to stream, ecx: returns flags, edx: ptr to
     ret
 
 heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags, edx: ptr to interpreter
+    push ebx
+    mov ebx, eax
+    call trim_string
+    call free_ebx
+    pop ebx
+
     push eax
     push ebx
     push edx
     push esi
     push edi
-
-    call trim_string
 
     cmp [eax], byte 0
     je .done
@@ -744,7 +749,7 @@ heapflow_parse_line: ; eax: ptr to line, ebx: ptr to stream, ecx: returns flags,
 
         call heapflow_function_call_with_params
 
-        call free
+        call arraylist_free
 
         and ecx, ~HEAPFLOW_RETURN_FLAG
 

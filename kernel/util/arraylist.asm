@@ -113,6 +113,9 @@ arraylist_clear_with_free: ; eax: ptr to arraylist
 
     pop ecx
     pop eax
+
+    mov [eax], dword 0
+
     ret
 
 arraylist_deep_free: ; eax: ptr to arraylist

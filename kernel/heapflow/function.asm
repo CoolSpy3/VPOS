@@ -154,6 +154,13 @@ heapflow_function_free: ; ebx: ptr to function
     push eax
 
     mov eax, [ebx]
+
+    push eax
+    mov eax, [eax+FILESTREAM_START_OFFSET]
+    sub eax, 4
+    call free
+    pop eax
+
     call free
 
     mov eax, [ebx+HEAPFLOW_FUNCTION_CTX_OFFSET]
