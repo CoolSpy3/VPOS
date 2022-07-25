@@ -120,10 +120,11 @@ hashmap_put_data: ; eax: ptr to hashmap, ebx: key, edx: val
     mov ecx, [eax]
     shl ecx, 3
     add ecx, [eax+HASHMAP_DATA_OFFSET]
+    add ecx, 4
 
     .do_put:
-    mov [ecx], ebx
-    mov [ecx+4], edx
+    mov [ecx-4], ebx
+    mov [ecx], edx
     inc dword [eax]
 
     pop ecx
