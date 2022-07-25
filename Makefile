@@ -28,7 +28,7 @@ bin/disk.vdi: bin/live-image
 	rm -f bin/disk.vdi
 	VBoxManage convertfromraw bin/live-image bin/disk.vdi --format VMDK --uuid=a39e995d-b264-448c-b706-55884f79253c
 
-.PHONY: build rebuild clean run debug disk run-vm
+.PHONY: build rebuild clean run debug disk run-vbox
 
 build: bin/live-image
 
@@ -45,5 +45,5 @@ debug: bin/live-image
 
 disk: bin/disk.vdi
 
-run-vm: bin/disk.vdi
+run-vbox: bin/disk.vdi
 	VBoxManage startvm VPOS
