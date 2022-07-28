@@ -1,7 +1,6 @@
 ifeq ($(OS),Windows_NT)
 -include bin/boot_section.d
 -include bin/kernel.d
--include bin/fs.d
 endif
 
 bin/boot_section.bin: boot_section/boot_section.asm
@@ -12,18 +11,8 @@ bin/kernel.bin: kernel/kernel.asm
 	mkdir -p $(@D)
 	nasm kernel/kernel.asm -i kernel/ -f bin -o bin/kernel.bin -MD bin/kernel.d -MP
 
-ifeq ($(OS),Windows_NT)
-bin/fs: fs/buildfs.py
-	mkdir -p $(@D)
-	python fs/buildfs.py fs bin/fs
-else
-bin/fs: fs/buildfs.py
-	mkdir -p $(@D)
-	python3 fs/buildfs.py fs bin/fs
-endif
-
 bin/live-image: bin/boot_section.bin bin/kernel.bin bin/fs
-	cat bin/boot_section.bin bin/kernel.bin bin/fs > bin/live-image
+	cat bin/boot_section.bin bin/kernel.bin > bin/live-image
 
 bin/disk.vdi: bin/live-image
 	rm -f bin/disk.vdi
