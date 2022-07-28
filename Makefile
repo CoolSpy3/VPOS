@@ -4,20 +4,21 @@ ifeq ($(OS),Windows_NT)
 -include bin/fs.d
 endif
 
-bin:
-	mkdir bin
+bin/boot_section.bin: boot_section/boot_section.asm
+	mkdir -p $(@D)
+	nasm boot_section/boot_section.asm -i boot_section/ -f bin -o bin/boot_section.bin -MD bin/boot_section.d -MP
 
-bin/boot_section.bin: bin boot_section/boot_section.asm
-	nasm boot_section/boot_section.asm -i boot_section/ -f bin -o bin/boot_section.bin -MD bin/boot_section.d
-
-bin/kernel.bin: bin kernel/kernel.asm
-	nasm kernel/kernel.asm -i kernel/ -f bin -o bin/kernel.bin -MD bin/kernel.d
+bin/kernel.bin: kernel/kernel.asm
+	mkdir -p $(@D)
+	nasm kernel/kernel.asm -i kernel/ -f bin -o bin/kernel.bin -MD bin/kernel.d -MP
 
 ifeq ($(OS),Windows_NT)
-bin/fs: bin fs/buildfs.py
+bin/fs: fs/buildfs.py
+	mkdir -p $(@D)
 	python fs/buildfs.py fs bin/fs
 else
-bin/fs: bin fs/buildfs.py
+bin/fs: fs/buildfs.py
+	mkdir -p $(@D)
 	python3 fs/buildfs.py fs bin/fs
 endif
 
@@ -47,3 +48,6 @@ disk: bin/disk.vdi
 
 run-vbox: bin/disk.vdi
 	VBoxManage startvm VPOS
+
+%.mem:
+	VBoxManage debugvm VPOS dumpvmcore --filename=$@

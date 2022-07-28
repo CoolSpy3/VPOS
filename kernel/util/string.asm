@@ -133,6 +133,8 @@ trim_string: ; eax: ptr to string, returns ptr to new string
 
     .skip_trailing_loop:
 
+    ; call calculate_free_memory
+    ; call vga_log_eax
     mov eax, 0
     call substr
     mov eax, edi

@@ -161,5 +161,5 @@ arraylist_copy: ; eax: ptr to arraylist, ebx: returns ptr to new arraylist
 ARRAYLIST_LENGTH equ 4 + 4 + 4 ; (size + allocated size + data ptr)
 ARRAYLIST_ALLOCATED_SIZE_OFFSET equ 4 ; (size + data ptr)
 ARRAYLIST_DATA_OFFSET equ 4 + 4
-ARRAYLIST_DEFAULT_SIZE equ 10
+ARRAYLIST_DEFAULT_SIZE equ 2
 ARRAYLIST_DEFAULT_DATA_LENGTH equ ARRAYLIST_DEFAULT_SIZE * 4
