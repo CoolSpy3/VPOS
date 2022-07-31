@@ -15,7 +15,7 @@ bin/kernel.bin: kernel/kernel.asm
 	mkdir -p $(@D)
 	nasm kernel/kernel.asm -i kernel/ -f bin -o bin/kernel.bin -MD bin/kernel.d -MP
 
-bin/live-image: bin/boot_section.bin bin/kernel.bin bin/fs
+bin/live-image: bin/boot_section.bin bin/kernel.bin
 	cat bin/boot_section.bin bin/kernel.bin > bin/live-image
 
 bin/disk.vdi: bin/live-image
