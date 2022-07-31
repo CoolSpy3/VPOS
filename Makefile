@@ -3,6 +3,10 @@ ifeq ($(OS),Windows_NT)
 -include bin/kernel.d
 endif
 
+bin/as_kernel.asm:
+	mkdir -p $(@D)
+	$(ARSENIC_EXE) arsenic bin/as_kernel.asm
+
 bin/boot_section.bin: boot_section/boot_section.asm
 	mkdir -p $(@D)
 	nasm boot_section/boot_section.asm -i boot_section/ -f bin -o bin/boot_section.bin -MD bin/boot_section.d -MP
