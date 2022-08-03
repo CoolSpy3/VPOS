@@ -3,7 +3,7 @@ ifeq ($(OS),Windows_NT)
 -include bin/kernel.d
 endif
 
-bin/as_kernel.asm:
+bin/as_kernel.asm: arsenic/kernel_entry.as
 	mkdir -p $(@D)
 	$(ARSENIC_EXE) arsenic bin/as_kernel.asm
 
