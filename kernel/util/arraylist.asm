@@ -1,161 +1,161 @@
-arraylist_new: ; eax: returns ptr
-    mov eax, ARRAYLIST_LENGTH
+arraylist_new: ; rax: returns ptr
+    mov rax, ARRAYLIST_LENGTH
     call malloc
 
-    mov [eax], dword 0
-    mov [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET], dword ARRAYLIST_DEFAULT_SIZE
+    mov [rax], dword 0
+    mov [rax+ARRAYLIST_ALLOCATED_SIZE_OFFSET], dword ARRAYLIST_DEFAULT_SIZE
 
-    push eax
-    push ebx
+    push rax
+    push rbx
 
-    mov ebx, eax
-    mov eax, ARRAYLIST_DEFAULT_DATA_LENGTH
+    mov rbx, rax
+    mov rax, ARRAYLIST_DEFAULT_DATA_LENGTH
     call malloc
-    mov [ebx+ARRAYLIST_DATA_OFFSET], eax
+    mov [rbx+ARRAYLIST_DATA_OFFSET], rax
 
-    pop ebx
-    pop eax
+    pop rbx
+    pop rax
     ret
 
-arraylist_get: ; eax: ptr to arraylist, ebx: idx, returns val
-    shl ebx, 2
-    add ebx, [eax+ARRAYLIST_DATA_OFFSET]
-    mov ebx, [ebx]
+arraylist_get: ; rax: ptr to arraylist, rbx: idx, returns val
+    shl rbx, 2
+    add rbx, [rax+ARRAYLIST_DATA_OFFSET]
+    mov rbx, [rbx]
 
     ret
 
-arraylist_add: ; eax: ptr to arraylist, ebx: val
-    push edx
+arraylist_add: ; rax: ptr to arraylist, rbx: val
+    push rdx
 
-    mov edx, [eax]
-    cmp edx, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
+    mov rdx, [rax]
+    cmp rdx, [rax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
     jb .add
 
-    push esi
-    push edi
-    push eax
-    push ecx
+    push rsi
+    push rdi
+    push rax
+    push rcx
 
-    mov edx, eax
-    add [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET], dword ARRAYLIST_DEFAULT_SIZE
-    mov eax, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
-    shl eax, 2
+    mov rdx, rax
+    add [rax+ARRAYLIST_ALLOCATED_SIZE_OFFSET], dword ARRAYLIST_DEFAULT_SIZE
+    mov rax, [rax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
+    shl rax, 2
     call malloc
-    mov esi, [edx+ARRAYLIST_DATA_OFFSET]
-    mov edi, eax
-    mov ecx, [edx]
-    push edi
+    mov rsi, [rdx+ARRAYLIST_DATA_OFFSET]
+    mov rdi, rax
+    mov rcx, [rdx]
+    push rdi
     cld
     rep movsd
-    pop edi
-    pop ecx
-    pop eax
+    pop rdi
+    pop rcx
+    pop rax
 
-    push eax
-    mov eax, [eax+ARRAYLIST_DATA_OFFSET]
+    push rax
+    mov rax, [rax+ARRAYLIST_DATA_OFFSET]
     call free
-    pop eax
+    pop rax
 
-    mov [eax+ARRAYLIST_DATA_OFFSET], edi
+    mov [rax+ARRAYLIST_DATA_OFFSET], rdi
 
-    pop edi
-    pop esi
+    pop rdi
+    pop rsi
 
     .add:
-    mov edx, [eax]
-    shl edx, 2
-    add edx, [eax+ARRAYLIST_DATA_OFFSET]
-    mov [edx], ebx
-    add [eax], dword 1
+    mov rdx, [rax]
+    shl rdx, 2
+    add rdx, [rax+ARRAYLIST_DATA_OFFSET]
+    mov [rdx], rbx
+    add [rax], dword 1
 
-    pop edx
+    pop rdx
     ret
 
-arraylist_remove: ; eax: ptr to arraylist
-    push eax
+arraylist_remove: ; rax: ptr to arraylist
+    push rax
     call arraylist_poll
-    pop eax
+    pop rax
     ret
 
-arraylist_poll: ; eax: ptr to arraylist, ebx: returns the removed value
-    sub [eax], dword 1
-    mov ebx, [eax]
+arraylist_poll: ; rax: ptr to arraylist, rbx: returns the removed value
+    sub [rax], dword 1
+    mov rbx, [rax]
     call arraylist_get
     ret
 
-arraylist_free: ; eax: ptr to arraylist
-    push eax
-    mov eax, [eax+ARRAYLIST_DATA_OFFSET]
+arraylist_free: ; rax: ptr to arraylist
+    push rax
+    mov rax, [rax+ARRAYLIST_DATA_OFFSET]
     call free
-    pop eax
+    pop rax
     call free
     ret
 
-arraylist_clear_with_free: ; eax: ptr to arraylist
-    push eax
-    push ecx
+arraylist_clear_with_free: ; rax: ptr to arraylist
+    push rax
+    push rcx
 
-    mov ecx, [eax]
-    mov eax, [eax+ARRAYLIST_DATA_OFFSET]
+    mov rcx, [rax]
+    mov rax, [rax+ARRAYLIST_DATA_OFFSET]
 
-    jecxz .skip_loop
+    jrcxz .skip_loop
 
     .loop:
-        push eax
-        mov eax, [eax]
+        push rax
+        mov rax, [rax]
         call free
-        pop eax
-        add eax, 4
-        dec ecx
+        pop rax
+        add rax, 4
+        dec rcx
         jnz .loop
 
     .skip_loop:
 
-    pop ecx
-    pop eax
+    pop rcx
+    pop rax
 
-    mov [eax], dword 0
+    mov [rax], dword 0
 
     ret
 
-arraylist_deep_free: ; eax: ptr to arraylist
+arraylist_deep_free: ; rax: ptr to arraylist
     call arraylist_clear_with_free
     call arraylist_free
     ret
 
-arraylist_copy: ; eax: ptr to arraylist, ebx: returns ptr to new arraylist
-    push esi
-    push edi
-    push ecx
+arraylist_copy: ; rax: ptr to arraylist, rbx: returns ptr to new arraylist
+    push rsi
+    push rdi
+    push rcx
 
     cld
 
-    push eax
-    mov eax, ARRAYLIST_LENGTH
+    push rax
+    mov rax, ARRAYLIST_LENGTH
     call malloc
-    mov ebx, eax
-    pop eax
+    mov rbx, rax
+    pop rax
 
-    mov esi, eax
-    mov edi, ebx
-    mov ecx, ARRAYLIST_LENGTH
+    mov rsi, rax
+    mov rdi, rbx
+    mov rcx, ARRAYLIST_LENGTH
     rep movsb
 
-    push eax
-    mov eax, [eax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
-    shl eax, 2
-    mov ecx, eax ; This will be used for the next memcpy
+    push rax
+    mov rax, [rax+ARRAYLIST_ALLOCATED_SIZE_OFFSET]
+    shl rax, 2
+    mov rcx, rax ; This will be used for the next memcpy
     call malloc
-    mov edi, eax ; This will be used for the next memcpy
-    mov [ebx+ARRAYLIST_DATA_OFFSET], eax
-    pop eax
+    mov rdi, rax ; This will be used for the next memcpy
+    mov [rbx+ARRAYLIST_DATA_OFFSET], rax
+    pop rax
 
-    mov esi, [eax+ARRAYLIST_DATA_OFFSET]
+    mov rsi, [rax+ARRAYLIST_DATA_OFFSET]
     rep movsb
 
-    pop ecx
-    pop edi
-    pop esi
+    pop rcx
+    pop rdi
+    pop rsi
     ret
 
 ARRAYLIST_LENGTH equ 4 + 4 + 4 ; (size + allocated size + data ptr)

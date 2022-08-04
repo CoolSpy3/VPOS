@@ -1,6 +1,6 @@
 
 pic_init: ;dl: base0, dh: base1
-    pusha
+    pushaq
     mov bl, 0
     
     cli
@@ -51,11 +51,11 @@ pic_init: ;dl: base0, dh: base1
     mov cl, 1
     call pic_send
 
-    popa
+    popaq
     ret
 
 pic_send: ;al: command, ch: pic number, cl: command(not 1) or data(1)
-    pusha
+    pushaq
 
     cmp ch, 1
     jg .return
@@ -90,11 +90,11 @@ pic_send: ;al: command, ch: pic number, cl: command(not 1) or data(1)
     out dx, al
 
     .return:
-    popa
+    popaq
     ret
 
 pic_interupt_done: ;cl: idt index
-    pusha
+    pushaq
 
     cmp cl, 16
     jg .return
@@ -114,7 +114,7 @@ pic_interupt_done: ;cl: idt index
     call pic_send
 
     .return:
-    popa
+    popaq
     ret
 
 

@@ -1,207 +1,207 @@
-hashmap_new: ; eax: returns ptr
-    mov eax, HASHMAP_LENGTH
+hashmap_new: ; rax: returns ptr
+    mov rax, HASHMAP_LENGTH
     call malloc
 
-    mov [eax], dword 0
-    mov [eax+HASHMAP_ALLOCATED_SIZE_OFFSET], dword HASHMAP_DEFAULT_SIZE
+    mov [rax], dword 0
+    mov [rax+HASHMAP_ALLOCATED_SIZE_OFFSET], dword HASHMAP_DEFAULT_SIZE
 
-    push eax
-    push ebx
+    push rax
+    push rbx
 
-    mov ebx, eax
-    mov eax, HASHMAP_DEFAULT_DATA_LENGTH
+    mov rbx, rax
+    mov rax, HASHMAP_DEFAULT_DATA_LENGTH
     call malloc
-    mov [ebx+HASHMAP_DATA_OFFSET], eax
+    mov [rbx+HASHMAP_DATA_OFFSET], rax
 
-    pop ebx
-    pop eax
+    pop rbx
+    pop rax
     ret
 
-hashmap_get_addr: ; eax: ptr to hashmap, ebx: key, returns ptr to value
-    push eax
-    push ecx
-    push edx
+hashmap_get_addr: ; rax: ptr to hashmap, rbx: key, returns ptr to value
+    push rax
+    push rcx
+    push rdx
 
-    mov edx, [eax]
-    mov eax, [eax+HASHMAP_DATA_OFFSET]
+    mov rdx, [rax]
+    mov rax, [rax+HASHMAP_DATA_OFFSET]
 
-    mov ecx, 0
+    mov rcx, 0
     .loop:
-        cmp ebx, [eax]
+        cmp rbx, [rax]
         je .found
-        add eax, 8
-        inc ecx
-        cmp ecx, edx
+        add rax, 8
+        inc rcx
+        cmp rcx, rdx
         jb .loop
 
-    mov ebx, 0
+    mov rbx, 0
 
     .done:
-    pop edx
-    pop ecx
-    pop eax
+    pop rdx
+    pop rcx
+    pop rax
     ret
 
     .found:
-    mov ebx, eax
-    add ebx, 4
+    mov rbx, rax
+    add rbx, 4
     jmp .done
 
-hashmap_get: ; eax: ptr to hashmap, ebx: key, returns value
-    push eax
-    mov eax, ebx
+hashmap_get: ; rax: ptr to hashmap, rbx: key, returns value
+    push rax
+    mov rax, rbx
     call hash_string
-    pop eax
+    pop rax
     call hashmap_get_data
     ret
 
-hashmap_get_data: ; eax: ptr to hashmap, ebx: key, returns value
+hashmap_get_data: ; rax: ptr to hashmap, rbx: key, returns value
     call hashmap_get_addr
-    cmp ebx, 0
+    cmp rbx, 0
     je .done
-    mov ebx, [ebx]
+    mov rbx, [rbx]
     .done:
     ret
 
-hashmap_put: ; eax: ptr to hashmap, ebx: key (ptr to string), edx: val
-    push ebx
-    push eax
-    mov eax, ebx
+hashmap_put: ; rax: ptr to hashmap, rbx: key (ptr to string), rdx: val
+    push rbx
+    push rax
+    mov rax, rbx
     call hash_string
-    pop eax
+    pop rax
     call hashmap_put_data
-    pop ebx
+    pop rbx
     ret
 
-hashmap_put_data: ; eax: ptr to hashmap, ebx: key, edx: val
-    push ecx
+hashmap_put_data: ; rax: ptr to hashmap, rbx: key, rdx: val
+    push rcx
 
-    push ebx
+    push rbx
     call hashmap_get_addr
-    mov ecx, ebx
-    pop ebx
-    cmp ecx, 0
+    mov rcx, rbx
+    pop rbx
+    cmp rcx, 0
     jne .do_put
 
-    mov ecx, [eax]
-    cmp ecx, [eax+HASHMAP_ALLOCATED_SIZE_OFFSET]
+    mov rcx, [rax]
+    cmp rcx, [rax+HASHMAP_ALLOCATED_SIZE_OFFSET]
     jb .select_next_val
 
-    push esi
-    push edi
-    push eax
+    push rsi
+    push rdi
+    push rax
 
-    mov ecx, eax
-    add [eax+HASHMAP_ALLOCATED_SIZE_OFFSET], dword HASHMAP_DEFAULT_SIZE
-    mov eax, [eax+HASHMAP_ALLOCATED_SIZE_OFFSET]
-    shl eax, 3
+    mov rcx, rax
+    add [rax+HASHMAP_ALLOCATED_SIZE_OFFSET], dword HASHMAP_DEFAULT_SIZE
+    mov rax, [rax+HASHMAP_ALLOCATED_SIZE_OFFSET]
+    shl rax, 3
     call malloc
-    mov esi, [ecx+HASHMAP_DATA_OFFSET]
-    mov edi, eax
-    mov ecx, [ecx]
-    shl ecx, 1
-    push edi
+    mov rsi, [rcx+HASHMAP_DATA_OFFSET]
+    mov rdi, rax
+    mov rcx, [rcx]
+    shl rcx, 1
+    push rdi
     cld
     rep movsd
-    pop edi
-    pop eax
+    pop rdi
+    pop rax
 
-    push eax
-    mov eax, [eax+HASHMAP_DATA_OFFSET]
+    push rax
+    mov rax, [rax+HASHMAP_DATA_OFFSET]
     call free
-    pop eax
+    pop rax
 
-    mov [eax+HASHMAP_DATA_OFFSET], edi
+    mov [rax+HASHMAP_DATA_OFFSET], rdi
 
-    pop edi
-    pop esi
+    pop rdi
+    pop rsi
 
     .select_next_val:
-    mov ecx, [eax]
-    shl ecx, 3
-    add ecx, [eax+HASHMAP_DATA_OFFSET]
-    add ecx, 4
+    mov rcx, [rax]
+    shl rcx, 3
+    add rcx, [rax+HASHMAP_DATA_OFFSET]
+    add rcx, 4
 
     .do_put:
-    mov [ecx-4], ebx
-    mov [ecx], edx
-    inc dword [eax]
+    mov [rcx-4], rbx
+    mov [rcx], rdx
+    inc dword [rax]
 
-    pop ecx
+    pop rcx
     ret
 
-hashmap_free: ; eax: ptr to hashmap
-    push eax
-    mov eax, [eax+HASHMAP_DATA_OFFSET]
+hashmap_free: ; rax: ptr to hashmap
+    push rax
+    mov rax, [rax+HASHMAP_DATA_OFFSET]
     call free
-    pop eax
+    pop rax
     call free
     ret
 
 ; Implementation of sdbm (see http://www.cse.yorku.ca/~oz/hash.html)
-hash_string: ; eax: ptr to string, ebx: returns hash
-    push eax
-    push ecx
-    push edx
+hash_string: ; rax: ptr to string, rbx: returns hash
+    push rax
+    push rcx
+    push rdx
 
-    mov ebx, 0
+    mov rbx, 0
 
     .loop:
-        cmp [eax], byte 0
+        cmp [rax], byte 0
         je .done
 
-        mov ecx, ebx
-        mov edx, 0
-        mov dl, [eax]
-        shl ecx, 6
-        add edx, ecx
-        shl ecx, 10
-        add edx, ecx
-        sub edx, ebx
-        mov ebx, edx
+        mov rcx, rbx
+        mov rdx, 0
+        mov dl, [rax]
+        shl rcx, 6
+        add rdx, rcx
+        shl rcx, 10
+        add rdx, rcx
+        sub rdx, rbx
+        mov rbx, rdx
 
-        inc eax
+        inc rax
         jmp .loop
 
     .done:
-    pop edx
-    pop ecx
-    pop eax
+    pop rdx
+    pop rcx
+    pop rax
     ret
 
-hashmap_copy: ; eax: ptr to hashmap, ebx: returns ptr to new hashmap
-    push esi
-    push edi
-    push ecx
+hashmap_copy: ; rax: ptr to hashmap, rbx: returns ptr to new hashmap
+    push rsi
+    push rdi
+    push rcx
 
     cld
 
-    push eax
-    mov eax, HASHMAP_LENGTH
+    push rax
+    mov rax, HASHMAP_LENGTH
     call malloc
-    mov ebx, eax
-    pop eax
+    mov rbx, rax
+    pop rax
 
-    mov esi, eax
-    mov edi, ebx
-    mov ecx, HASHMAP_LENGTH
+    mov rsi, rax
+    mov rdi, rbx
+    mov rcx, HASHMAP_LENGTH
     rep movsb
 
-    push eax
-    mov eax, [eax+HASHMAP_ALLOCATED_SIZE_OFFSET]
-    shl eax, 3
-    mov ecx, eax ; This will be used for the next memcpy
+    push rax
+    mov rax, [rax+HASHMAP_ALLOCATED_SIZE_OFFSET]
+    shl rax, 3
+    mov rcx, rax ; This will be used for the next memcpy
     call malloc
-    mov edi, eax ; This will be used for the next memcpy
-    mov [ebx+HASHMAP_DATA_OFFSET], eax
-    pop eax
+    mov rdi, rax ; This will be used for the next memcpy
+    mov [rbx+HASHMAP_DATA_OFFSET], rax
+    pop rax
 
-    mov esi, [eax+HASHMAP_DATA_OFFSET]
+    mov rsi, [rax+HASHMAP_DATA_OFFSET]
     rep movsb
 
-    pop ecx
-    pop edi
-    pop esi
+    pop rcx
+    pop rdi
+    pop rsi
     ret
 
 

@@ -1,104 +1,104 @@
-str_len: ; Put string addr in edi, length returned in eax
-    push edi
-    push ecx
+str_len: ; Put string addr in rdi, length returned in rax
+    push rdi
+    push rcx
     mov al, 0
-    mov ecx, -1
+    mov rcx, -1
     cld
     repne scasb
-    mov eax, -2
-    sub eax, ecx
-    pop ecx
-    pop edi
+    mov rax, -2
+    sub rax, rcx
+    pop rcx
+    pop rdi
     ret
 
-substr: ; copies esi to a new string retuned in edi (ecx bytes starting from idx eax)
-    push esi
-    push eax
-    push ecx
+substr: ; copies rsi to a new string retuned in rdi (rcx bytes starting from idx rax)
+    push rsi
+    push rax
+    push rcx
 
-    add esi, eax
-    mov eax, ecx
-    add eax, 1
+    add rsi, rax
+    mov rax, rcx
+    add rax, 1
     call malloc
-    mov edi, eax
+    mov rdi, rax
 
-    push edi
+    push rdi
     cld
     rep movsb
-    pop edi
-    pop ecx
+    pop rdi
+    pop rcx
 
-    push edi
-    add edi, ecx
+    push rdi
+    add rdi, rcx
     mov [edi], byte 0
-    pop edi
+    pop rdi
 
-    pop eax
-    pop esi
+    pop rax
+    pop rsi
     ret
 
-split_string: ; esi: string address, eax: returns pointer to arraylist, bl: split condition
+split_string: ; rsi: string address, rax: returns pointer to arraylist, bl: split condition
     push bx
-    push ecx
-    push edx
-    push esi
-    push edi
+    push rcx
+    push rdx
+    push rsi
+    push rdi
 
-    mov edx, esi ; current char position
+    mov rdx, rsi ; current char position
 
-    mov ecx, 0 ; length
+    mov rcx, 0 ; length
 
-    call arraylist_new ; eax pointer to arraylist
+    call arraylist_new ; rax pointer to arraylist
 
     .loop:
 
-        cmp [edx], bl
+        cmp [rdx], bl
         jne .loop_end
 
         .found:
-        push eax
-        mov eax, 0
+        push rax
+        mov rax, 0
         call substr
-        pop eax
+        pop rax
 
-        push ebx
-        mov ebx, edi
+        push rbx
+        mov rbx, rdi
         call arraylist_add
-        pop ebx
+        pop rbx
 
-        inc edx
-        mov esi, edx
-        mov ecx, 0
+        inc rdx
+        mov rsi, rdx
+        mov rcx, 0
 
         cmp [esi], byte 0
         je .done
         jmp .loop
 
         .loop_end:
-        inc ecx
-        inc edx
-        cmp [edx], byte 0
+        inc rcx
+        inc rdx
+        cmp [rdx], byte 0
         je .found
         jmp .loop
 
     .done:
 
-    pop edi
-    pop esi
-    pop edx
-    pop ecx
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
     pop bx
     ret
 
-trim_string: ; eax: ptr to string, returns ptr to new string
-    push esi
-    push edi
-    push ecx
+trim_string: ; rax: ptr to string, returns ptr to new string
+    push rsi
+    push rdi
+    push rcx
 
-    mov esi, eax
-    mov edi, eax
+    mov rsi, rax
+    mov rdi, rax
     call str_len
-    mov ecx, eax
+    mov rcx, rax
 
     cmp [esi], byte 0
     je .skip_trailing_loop
@@ -107,8 +107,8 @@ trim_string: ; eax: ptr to string, returns ptr to new string
     ja .skip_leading_loop
 
     .leading_loop:
-        inc esi
-        dec ecx
+        inc rsi
+        dec rcx
         cmp [esi], byte 0
         je .skip_leading_loop
         cmp [esi], byte ' '
@@ -119,27 +119,27 @@ trim_string: ; eax: ptr to string, returns ptr to new string
     cmp [esi], byte 0
     je .skip_trailing_loop
 
-    mov edi, esi
-    add edi, ecx
-    dec edi
+    mov rdi, rsi
+    add rdi, rcx
+    dec rdi
     cmp [edi], byte ' '
     ja .skip_trailing_loop
 
     .trailing_loop:
-        dec edi
-        dec ecx
+        dec rdi
+        dec rcx
         cmp [edi], byte ' '
         jbe .trailing_loop
 
     .skip_trailing_loop:
 
     ; call calculate_free_memory
-    ; call vga_log_eax
-    mov eax, 0
+    ; call vga_log_rax
+    mov rax, 0
     call substr
-    mov eax, edi
+    mov rax, rdi
 
-    pop ecx
-    pop edi
-    pop esi
+    pop rcx
+    pop rdi
+    pop rsi
     ret

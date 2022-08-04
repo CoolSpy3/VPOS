@@ -1,27 +1,27 @@
 pushcli:
-    push eax
+    push rax
     cmp [ncli], byte 0
     jne .disint
 
-    pushfd
-    pop eax
-    and eax, 0x200
-    mov [intea], eax
+    pushfq
+    pop rax
+    and rax, 0x200
+    mov [intea], rax
 
     .disint:
         cli
         inc word [ncli]
-        pop eax
+        pop rax
         ret
 
 
 popcli:
-    push eax
-    pushfd
-    pop eax
-    and eax, 0x200
+    push rax
+    pushfq
+    pop rax
+    and rax, 0x200
 
-    cmp eax, 0x200
+    cmp rax, 0x200
     je panic
 
     dec word [ncli]
@@ -36,23 +36,23 @@ popcli:
     sti
 
     .return:
-    pop eax
+    pop rax
     ret
 
 aquire:
-    push eax
+    push rax
     call pushcli
     cmp [esi], byte 0
     jne panic
 
     .do_aquire:
 
-        mov eax, 1
-        lock xchg [esi], eax
+        mov rax, 1
+        lock xchg [esi], rax
         cmp [esi], byte 0
         jne .do_aquire
 
-    pop eax
+    pop rax
     ret
 
 release:

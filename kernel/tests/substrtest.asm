@@ -1,10 +1,10 @@
 substrtest:
-    mov esi, test_string
-    mov eax, 2
-    mov ecx, 5
+    mov rsi, test_string
+    mov rax, 2
+    mov rcx, 5
     call substr
 
-    mov ebx, edi
+    mov rbx, rdi
     mov cx, 0x700
     call vga_textmode_setstring
     ret

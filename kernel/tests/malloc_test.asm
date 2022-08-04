@@ -1,69 +1,69 @@
 malloc_test:
-    mov eax, MEM_START
+    mov rax, MEM_START
     mov cl, 0
     mov ch, 0
-    ; mov ebx, eax
+    ; mov rbx, rax
     mov dh, byte 0x5
     call vga_textmode_showhex
 
-    mov eax, 11
+    mov rax, 11
     call malloc
-    mov [eax], byte '*'
-    mov [eax+1], byte '*'
-    mov [eax+2], byte '*'
-    mov [eax+3], byte '*'
-    mov [eax+4], byte '*'
-    mov [eax+5], byte '*'
-    mov [eax+6], byte '*'
-    mov [eax+7], byte '*'
-    mov [eax+8], byte '*'
-    mov [eax+9], byte '*'
-    mov [eax+10], byte 0
+    mov [rax], byte '*'
+    mov [rax+1], byte '*'
+    mov [rax+2], byte '*'
+    mov [rax+3], byte '*'
+    mov [rax+4], byte '*'
+    mov [rax+5], byte '*'
+    mov [rax+6], byte '*'
+    mov [rax+7], byte '*'
+    mov [rax+8], byte '*'
+    mov [rax+9], byte '*'
+    mov [rax+10], byte 0
 
     mov cl, 0
     mov ch, 1
-    ; mov ebx, eax
+    ; mov rbx, rax
     mov dh, byte 0x5
     call vga_textmode_showhex
 
-    push eax
-    mov eax, 12
+    push rax
+    mov rax, 12
     call malloc
-    mov ebx, eax
-    pop eax
-    mov [ebx], byte '='
-    mov [ebx+1], byte '='
-    mov [ebx+2], byte '='
-    mov [ebx+3], byte '='
-    mov [ebx+4], byte '='
-    mov [ebx+5], byte '='
-    mov [ebx+6], byte '='
-    mov [ebx+7], byte '='
-    mov [ebx+8], byte '='
-    mov [ebx+9], byte '='
-    mov [ebx+9], byte 'D'
-    mov [ebx+10], byte 0
+    mov rbx, rax
+    pop rax
+    mov [rbx], byte '='
+    mov [rbx+1], byte '='
+    mov [rbx+2], byte '='
+    mov [rbx+3], byte '='
+    mov [rbx+4], byte '='
+    mov [rbx+5], byte '='
+    mov [rbx+6], byte '='
+    mov [rbx+7], byte '='
+    mov [rbx+8], byte '='
+    mov [rbx+9], byte '='
+    mov [rbx+9], byte 'D'
+    mov [rbx+10], byte 0
 
-    xchg eax, ebx
+    xchg rax, rbx
     mov cl, 0
     mov ch, 2
-    ; mov ebx, eax
+    ; mov rbx, rax
     mov dh, byte 0x5
     call vga_textmode_showhex
-    xchg eax, ebx
+    xchg rax, rbx
 
     call free
-    mov eax, 5
+    mov rax, 5
     call malloc
-    mov [eax], byte '6'
-    mov [eax+1], byte '9'
-    mov [eax+2], byte '6'
-    mov [eax+3], byte '9'
-    mov [eax+4], byte 0
+    mov [rax], byte '6'
+    mov [rax+1], byte '9'
+    mov [rax+2], byte '6'
+    mov [rax+3], byte '9'
+    mov [rax+4], byte 0
 
     mov cl, 0
     mov ch, 3
-    ; mov ebx, eax
+    ; mov rbx, rax
     mov dh, byte 0x5
     call vga_textmode_showhex
 

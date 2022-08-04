@@ -1,122 +1,122 @@
 
 
 calculate_free_memory:
-    mov eax, 0
-    push ebx
-    push edx
+    mov rax, 0
+    push rbx
+    push rdx
 
-    mov ebx, MEM_START
-    mov edx, 0
+    mov rbx, MEM_START
+    mov rdx, 0
 
     .loop:
-        add ebx, edx
-        cmp ebx, MEM_END
+        add rbx, rdx
+        cmp rbx, MEM_END
         jae .done
-        mov dx, [ebx]
-        ; call vga_log_edx
-        cmp [ebx+BLOCK_IN_USE_OFFSET], byte 0
+        mov dx, [rbx]
+        ; call vga_log_rdx
+        cmp [rbx+BLOCK_IN_USE_OFFSET], byte 0
         jne .loop
-        add eax, edx
+        add rax, rdx
         jmp .loop
 
     .done:
-    cmp eax, 0x0F00
-    call vga_log_eax
+    cmp rax, 0x0F00
+    call vga_log_rax
     jb panic
 
-    pop edx
-    pop ebx
+    pop rdx
+    pop rbx
     ret
 
 calculate_free_memory2:
-    mov eax, 0
-    push ebx
-    push edx
+    mov rax, 0
+    push rbx
+    push rdx
 
-    mov ebx, MEM_START
-    mov edx, 0
+    mov rbx, MEM_START
+    mov rdx, 0
 
     .loop:
-        add ebx, edx
-        cmp ebx, MEM_END
+        add rbx, rdx
+        cmp rbx, MEM_END
         jae .done
-        mov dx, [ebx]
-        ; call vga_log_edx
-        cmp [ebx+BLOCK_IN_USE_OFFSET], byte 0
+        mov dx, [rbx]
+        ; call vga_log_rdx
+        cmp [rbx+BLOCK_IN_USE_OFFSET], byte 0
         jne .loop
-        add eax, edx
+        add rax, rdx
         jmp .loop
 
     .done:
-    cmp eax, 0x0F00
+    cmp rax, 0x0F00
     jb .panic
 
-    pop edx
-    pop ebx
+    pop rdx
+    pop rbx
     ret
 
     .panic:
-    call vga_log_eax
+    call vga_log_rax
     mov [0xb8000], word 0x730
     jmp $
 
-assert_valid_block: ; eax: ptr to block
-    push eax
-    push ebx
-    push edx
-    mov edx, 0
-    mov ebx, MEM_START
+assert_valid_block: ; rax: ptr to block
+    push rax
+    push rbx
+    push rdx
+    mov rdx, 0
+    mov rbx, MEM_START
     .loop:
-        cmp eax, ebx
+        cmp rax, rbx
         je .done
-        cmp ebx, MEM_END
+        cmp rbx, MEM_END
         jae panic
-        mov dx, [ebx]
-        add ebx, edx
+        mov dx, [rbx]
+        add rbx, rdx
         jmp .loop
 
     .done:
-    pop edx
-    pop ebx
-    pop eax
+    pop rdx
+    pop rbx
+    pop rax
     ret
 
 validate_memory:
-    pushad
+    pushaq
 
-    mov eax, MEM_START
+    mov rax, MEM_START
 
-    mov ebx, 0
+    mov rbx, 0
 
     .loop:
-        cmp [eax], word 0
+        cmp [rax], word 0
         je panic
 
-        mov bx, [eax]
-        add eax, ebx
-        cmp eax, MEM_END
+        mov bx, [rax]
+        add rax, rbx
+        cmp rax, MEM_END
         jb .loop
 
-    popad
+    popaq
     ret
 
 validate_memory2:
-    pushad
+    pushaq
 
-    mov eax, MEM_START
+    mov rax, MEM_START
 
-    mov ebx, 0
+    mov rbx, 0
 
     .loop:
-        cmp [eax], word 0
+        cmp [rax], word 0
         je .panic
 
-        mov bx, [eax]
-        add eax, ebx
-        cmp eax, MEM_END
+        mov bx, [rax]
+        add rax, rbx
+        cmp rax, MEM_END
         jb .loop
 
-    popad
+    popaq
     ret
 
     .panic:

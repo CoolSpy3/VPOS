@@ -1,5 +1,5 @@
 clear_textmode_buffer:
-    pushad
+    pushaq
 
     mov cl, 0 ; cols
     mov ch, 0 ; rows
@@ -20,13 +20,13 @@ clear_textmode_buffer:
         jl .loop
 
 
-    popad
+    popaq
     ret
 
 
 vga_textmode_setchar: ;ch: row, cl: col, dx: char_data
-    pushad
-    mov ebx, 0xb8000
+    pushaq
+    mov rbx, 0xb8000
     mov al, 160
     mul ch
     mov si, ax ;si = 160 * ch(row)
@@ -34,25 +34,25 @@ vga_textmode_setchar: ;ch: row, cl: col, dx: char_data
     mov al, 2
     mul cl ; al = 2 * cl
     add si, ax ; si = si + (2 * cl)
-    add ebx, esi
+    add rbx, rsi
 
     ;example:
     ; mov dl, byte 'X'
     ; mov dh, byte 0x5
-    mov [ebx], dx
+    mov [rbx], dx
 
-    popad
+    popaq
     ret
 
 vga_textmode_setstring:
-    pushad
+    pushaq
 
     .loop:
-        mov dl, byte [ebx]
+        mov dl, byte [rbx]
 
         call vga_textmode_setchar
 
-        inc ebx
+        inc rbx
 
         inc cl
         cmp cl, 80
@@ -65,35 +65,35 @@ vga_textmode_setstring:
 
         .again:
 
-        cmp [ebx], byte 0
+        cmp [rbx], byte 0
         jne .loop
 
     .end:
 
-    popad
+    popaq
     ret
 
-vga_textmode_showhex: ; eax: val, cl: x, ch: y, dl: color
-    pushad
+vga_textmode_showhex: ; rax: val, cl: x, ch: y, dl: color
+    pushaq
 
-    push ecx
+    push rcx
 
-    mov ecx, 9
+    mov rcx, 9
 
     .loop:
     call .readChar
-    shr eax, 4
-    sub ecx, 1
+    shr rax, 4
+    sub rcx, 1
 
-    cmp ecx, 2
+    cmp rcx, 2
     jae .loop
 
-    pop ecx
+    pop rcx
 
-    mov ebx, hex_string
+    mov rbx, hex_string
     call vga_textmode_setstring
 
-    popad
+    popaq
     ret
 
     .readChar:
@@ -109,11 +109,11 @@ vga_textmode_showhex: ; eax: val, cl: x, ch: y, dl: color
     add al, 'A'-0xA
 
     .readChar_put:
-    mov [hex_string+ecx], al
+    mov [hex_string+rcx], al
     pop ax
     ret
 
-vga_textmode_showeaxandhang:
+vga_textmode_showraxandhang:
     mov cl, 0
     mov ch, 0
     mov dh, byte 0x5

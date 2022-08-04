@@ -35,7 +35,7 @@ mov eax, cr0
 or eax, 0x1
 mov cr0, eax
 
-jmp gdt_code_seg:pm_begin
+jmp gdt_32_code_seg:pm_begin
 
 jmp $
 
@@ -48,12 +48,22 @@ boot_disk db 0
 
 [bits 32]
 pm_begin:
+	mov ecx, 0xC0000080
+	rdmsr
+	or eax, 0x0100
+	wrmsr
+
 	mov ax, gdt_data_seg
 	mov ds, ax
 	mov ss, ax
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
+
+	jmp gdt_64_code_seg:lm_begin
+
+[bits 64]
+lm_begin:
 
 	jmp 0x1000
 

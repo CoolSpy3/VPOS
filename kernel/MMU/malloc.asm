@@ -1,138 +1,138 @@
-malloc: ; eax: size, returns ptr
-    add eax, BLOCK_HEADER_LENGTH
-    cmp eax, BLOCK_MIN_SIZE
+malloc: ; rax: size, returns ptr
+    add rax, BLOCK_HEADER_LENGTH
+    cmp rax, BLOCK_MIN_SIZE
     jae .allocate_memory
-    mov eax, BLOCK_MIN_SIZE
+    mov rax, BLOCK_MIN_SIZE
     .allocate_memory:
-    cmp eax, 0xFFFF
+    cmp rax, 0xFFFF
     ja panic
 
-    push ebx
-    mov ebx, MEM_START
+    push rbx
+    mov rbx, MEM_START
     call .find_and_allocate_memory
-    pop ebx
-    push eax
-    push ebx
-    mov ebx, 0
-    mov bx, [eax]
-    add eax, ebx
-    pop ebx
-    mov [HEAP_PTR], eax
+    pop rbx
+    push rax
+    push rbx
+    mov rbx, 0
+    mov bx, [rax]
+    add rax, rbx
+    pop rbx
+    mov [HEAP_PTR], rax
     cmp [HEAP_PTR], dword MEM_END
     jb .done
     mov [HEAP_PTR], dword MEM_START
     .done:
-    pop eax
-    add eax, BLOCK_HEADER_LENGTH
+    pop rax
+    add rax, BLOCK_HEADER_LENGTH
     ret
 
-    .find_and_allocate_memory: ; eax: size, returns ptr, ebx: first block to search
-    cmp [ebx+BLOCK_IN_USE_OFFSET], byte 0
+    .find_and_allocate_memory: ; rax: size, returns ptr, rbx: first block to search
+    cmp [rbx+BLOCK_IN_USE_OFFSET], byte 0
     jne .search_next_block ; Don't allocate an in-use block
 
-    cmp [ebx], ax
-    jb .search_next_block ; We cannot allocate more memory than exists in a block
+    cmp [rbx], ax
+    jb .search_next_block ; We cannot allocate more memory than rxists in a block
 
     ; Allocate the memory
 
-    push edx
-    mov edx, 0
-    mov dx, [ebx]
+    push rdx
+    mov rdx, 0
+    mov dx, [rbx]
     sub dx, ax
     cmp dx, BLOCK_MIN_SIZE
     jbe .do_allocate_memory ; If there is not enough space to split the block, allocate the whole block
 
     ; Otherwise, create two smaller blocks
-    mov [ebx], ax ; Our current block will be allocated to the requested size
-    push ecx
-    mov ecx, ebx
-    add ecx, eax
-    mov [ecx], dx ; A new block will gain the remaining space
-    mov [ecx+BLOCK_PREV_LENGTH_OFFSET], ax
-    mov [ecx+BLOCK_IN_USE_OFFSET], byte 0 ; It is unallocated
-    add ecx, edx
-    cmp ecx, MEM_END
+    mov [rbx], ax ; Our current block will be allocated to the requested size
+    push rcx
+    mov rcx, rbx
+    add rcx, rax
+    mov [rcx], dx ; A new block will gain the remaining space
+    mov [rcx+BLOCK_PREV_LENGTH_OFFSET], ax
+    mov [rcx+BLOCK_IN_USE_OFFSET], byte 0 ; It is unallocated
+    add rcx, rdx
+    cmp rcx, MEM_END
     jae .skip_link_prev_of_next_block
-    mov [ecx+BLOCK_PREV_LENGTH_OFFSET], dx ; The block after the new block has the new block as its previous
+    mov [rcx+BLOCK_PREV_LENGTH_OFFSET], dx ; The block after the new block has the new block as its previous
     .skip_link_prev_of_next_block:
-    pop ecx
+    pop rcx
 
     .do_allocate_memory:
-    pop edx
-    mov [ebx+BLOCK_IN_USE_OFFSET], byte 1 ; Flag the block as in use
+    pop rdx
+    mov [rbx+BLOCK_IN_USE_OFFSET], byte 1 ; Flag the block as in use
     ; We could zero the memory, but we don't care about nonsense data or leaking info
-    mov eax, ebx ; return this block
+    mov rax, rbx ; return this block
     ret
 
     .search_next_block:
-    push edx
-    mov edx, 0
-    mov dx, [ebx]
-    add ebx, edx
-    pop edx
-    cmp ebx, MEM_END
+    push rdx
+    mov rdx, 0
+    mov dx, [rbx]
+    add rbx, rdx
+    pop rdx
+    cmp rbx, MEM_END
     jae .search_from_start ; There is no next block, we've run out of memory
     jmp .find_and_allocate_memory ; try to allocate the next block
 
     .search_from_start:
-    mov ebx, MEM_START
+    mov rbx, MEM_START
     jmp .find_and_allocate_memory
 
-free: ; eax: ptr to memory
-    push eax
-    push ebx
-    sub eax, BLOCK_HEADER_LENGTH
-    mov [eax+BLOCK_IN_USE_OFFSET], byte 0 ; Flag the memory as not in use (free it)
+free: ; rax: ptr to memory
+    push rax
+    push rbx
+    sub rax, BLOCK_HEADER_LENGTH
+    mov [rax+BLOCK_IN_USE_OFFSET], byte 0 ; Flag the memory as not in use (free it)
     ; We could zero the memory, but we don't care about nonsense data or leaking info
 
-    mov ebx, 0
-    mov bx, [eax]
-    add ebx, eax
-    cmp ebx, MEM_END
+    mov rbx, 0
+    mov bx, [rax]
+    add rbx, rax
+    cmp rbx, MEM_END
     jae .merge_prev_block ; Skip if there is no next block
     call .try_merge_blocks
 
     .merge_prev_block:
-    mov ebx, 0
-    mov bx, [eax+BLOCK_PREV_LENGTH_OFFSET]
+    mov rbx, 0
+    mov bx, [rax+BLOCK_PREV_LENGTH_OFFSET]
     cmp bx, 0
     je .free_return ; Skip if there is no prev block
-    push edx
-    mov edx, eax
-    sub eax, ebx
-    mov ebx, edx
-    pop edx
+    push rdx
+    mov rdx, rax
+    sub rax, rbx
+    mov rbx, rdx
+    pop rdx
     call .try_merge_blocks
 
     .free_return: ; general return from free
-    pop ebx
-    pop eax
+    pop rbx
+    pop rax
     ret
 
-    .try_merge_blocks: ; eax: first block (lower address), ebx: second block (higher address)
+    .try_merge_blocks: ; rax: first block (lower address), rbx: second block (higher address)
     ; If either block is allocated, just return
-    cmp [eax+BLOCK_IN_USE_OFFSET], byte 0
+    cmp [rax+BLOCK_IN_USE_OFFSET], byte 0
     jne .try_return
-    cmp [ebx+BLOCK_IN_USE_OFFSET], byte 0
+    cmp [rbx+BLOCK_IN_USE_OFFSET], byte 0
     jne .try_return
 
     ; Otherwise, merge them
-    push eax
-    push edx
+    push rax
+    push rdx
 
-    mov edx, 0
-    mov dx, [eax]
-    add dx, [ebx]
-    mov [eax], dx ; The merged block has a size of the sum of the two blocks
-    add eax, edx
-    cmp eax, MEM_END
+    mov rdx, 0
+    mov dx, [rax]
+    add dx, [rbx]
+    mov [rax], dx ; The merged block has a size of the sum of the two blocks
+    add rax, rdx
+    cmp rax, MEM_END
     jae .skip_link_prev_of_next_block
     ; If there is a next block, set it's previous length to that of the merged block
-    mov [eax+BLOCK_PREV_LENGTH_OFFSET], dx
+    mov [rax+BLOCK_PREV_LENGTH_OFFSET], dx
 
     .skip_link_prev_of_next_block:
-    pop edx
-    pop eax
+    pop rdx
+    pop rax
 
     ; We could zero the header of the second block, but we don't care about nonsense data or leaking info
 

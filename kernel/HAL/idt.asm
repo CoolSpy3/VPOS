@@ -4,34 +4,34 @@ idt_install:
 
     ret
 
-idt_set_ISR: ; cl: index, edx: base, si: selector, ch: flags
-    pushad
+idt_set_ISR: ; cl: index, rdx: base, si: selector, ch: flags
+    pushaq
 
-    mov ebx, idt_structure
+    mov rbx, idt_structure
     mov al, 8
     mul cl
-    add ebx, eax
+    add rbx, rax
 
-    mov eax, edx
-    and eax, 0xFFFF
-    mov [ebx], eax
-    add ebx, 6
+    mov rax, rdx
+    and rax, 0xFFFF
+    mov [rbx], rax
+    add rbx, 6
 
-    mov eax, edx
-    shr eax, 16
-    and eax, 0xFFFF
-    mov [ebx], eax
-    sub ebx, 4
+    mov rax, rdx
+    shr rax, 16
+    and rax, 0xFFFF
+    mov [rbx], rax
+    sub rbx, 4
 
-    mov [ebx], si
-    add ebx, 2
+    mov [rbx], si
+    add rbx, 2
 
-    mov [ebx], byte 0
-    inc ebx
+    mov [rbx], byte 0
+    inc rbx
 
-    mov [ebx], ch
+    mov [rbx], ch
 
-    popad
+    popaq
     ret
 
 

@@ -97,14 +97,14 @@
 ;     ret
 
 VGA_write_regs:
-    pushad
+    pushaq
 
     mov dx, VGA_misc_write
-    mov ebx, VGAregister_data
-    mov al, [ebx]
+    mov rbx, VGAregister_data
+    mov al, [rbx]
     out dx, al
 
-    inc ebx
+    inc rbx
 
     mov si, VGA_seq_index
     mov di, VGA_seq_data
@@ -130,13 +130,13 @@ VGA_write_regs:
     and al, ~0x80
     out dx, al
 
-    mov al, [ebx+0x03]
+    mov al, [rbx+0x03]
     or al, 0x80
-    mov [ebx+0x03], al
+    mov [rbx+0x03], al
 
-    mov al, [ebx+0x11]
+    mov al, [rbx+0x11]
     and al, ~0x80
-    mov [ebx+0x11], al
+    mov [rbx+0x11], al
 
     mov si, VGA_crtc_index
     mov di, VGA_crtc_data
@@ -163,24 +163,24 @@ VGA_write_regs:
     mov al, 0x20
     out dx, al
 
-    popad
+    popaq
     ret
 
-    .loop: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, ebx: start of VGAregister_data (will be incremented)
+    .loop: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, rbx: start of VGAregister_data (will be incremented)
         mov dx, si
         mov al, cl
         out dx, al
         mov dx, di
-        mov al, [ebx]
+        mov al, [rbx]
         out dx, al
 
-        inc ebx
+        inc rbx
         inc cl
         cmp cl, ch
         jl .loop
         ret
 
-    .loop2: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, ebx: start of VGAregister_data (will be incremented)
+    .loop2: ;si: VGA_index, di: VGA_data, ch: loop end condition, cl: 0, rbx: start of VGAregister_data (will be incremented)
         mov dx, VGA_instat_read
         in al, dx
 
@@ -188,17 +188,17 @@ VGA_write_regs:
         mov al, cl
         out dx, al
         mov dx, di
-        mov al, [ebx]
+        mov al, [rbx]
         out dx, al
 
-        inc ebx
+        inc rbx
         inc cl
         cmp cl, ch
         jl .loop2
         ret
 
 draw_pixel: ; ax: x, bx: y, cl: color
-    pusha
+    pushaq
 
     mov dx, ax
 
@@ -212,11 +212,11 @@ draw_pixel: ; ax: x, bx: y, cl: color
 
     call vpoke
 
-    popa
+    popaq
     ret
 
 vpoke: ; bx: offset, cl: value
-    pusha
+    pushaq
 
     mov dx, VGA_GC_index
     mov al, 6
@@ -238,36 +238,36 @@ vpoke: ; bx: offset, cl: value
 
     .switch0:
     .switch1:
-        mov eax, 0xA0000
+        mov rax, 0xA0000
         jmp .end
 
     .switch2:
-        mov eax, 0xB0000
+        mov rax, 0xB0000
         jmp .end
 
     .switch3:
-        mov eax, 0xB8000
+        mov rax, 0xB8000
         jmp .end
 
     .end:
 
     call VGA_poke
 
-    popa
+    popaq
     ret
 
-VGA_poke: ; eax: S, ebx: O, cl: V
-    pusha
+VGA_poke: ; rax: S, rbx: O, cl: V
+    pushaq
 
     push bx
-    mov ebx, 0
+    mov rbx, 0
     pop bx
 
-    add ebx, eax
+    add rbx, rax
 
-    mov [ebx], cl
+    mov [rbx], cl
 
-    popa
+    popaq
     ret
 
 disable_cursor:

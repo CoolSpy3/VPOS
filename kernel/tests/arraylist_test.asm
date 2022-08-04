@@ -1,7 +1,7 @@
 arraylist_test:
     call arraylist_new
 
-    mov ebx, test_string
+    mov rbx, test_string
 
     mov cl, 0
 
@@ -12,7 +12,7 @@ arraylist_test:
         jne .loop
 
 
-    mov ebx, 15
+    mov rbx, 15
     call arraylist_get
 
     mov cx, 0

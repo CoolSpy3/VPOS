@@ -1,20 +1,20 @@
 keyboard_install_is:
-    pushad
+    pushaq
     
     mov cl, 33
-    mov ebx, keyboard_isr
+    mov rbx, keyboard_isr
     mov si, 0x8
     mov ch, I86_IDT_DESC_PRESENT
     or ch, I86_IDT_DESC_BIT32
     call idt_set_ISR
 
-    popad
+    popaq
     ret
 
 
 keyboard_isr:
     add esp, 12
-    pushad
+    pushaq
     cli
 
     mov dx, keyboard_CTRL_command_reg
@@ -33,7 +33,7 @@ keyboard_isr:
     call pic_interupt_done
 
     sti
-    popad
+    popaq
     iretd
 
 keyboard_enc_input_buffer equ 0x60
