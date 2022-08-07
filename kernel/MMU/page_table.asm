@@ -43,7 +43,7 @@ gen_page_table: ; We'll try to do this without the stack, so no guarantees on re
         mov [edi], ecx
         add edi, 4
         mov ecx, esi
-        shr ecx, 30
+        shr ecx, 32-30
         mov [edi], ecx
         add edi, 4
         mov ecx, esi
@@ -75,7 +75,7 @@ gen_page_table: ; We'll try to do this without the stack, so no guarantees on re
         mov [edi], ecx
         add edi, 4
         mov ecx, esi
-        shr ecx, 21
+        shr ecx, 32-21
         mov [edi], ecx
         add edi, 4
         mov ecx, esi
