@@ -26,6 +26,8 @@ clear_textmode_buffer:
 
 vga_textmode_setchar: ;ch: row, cl: col, dx: char_data
     pushaq
+    mov rax, 0
+    mov rsi, 0
     mov rbx, 0xb8000
     mov al, 160
     mul ch

@@ -30,8 +30,6 @@ cont_pm:
 %include "util/stackmacros.asm"
 
 main:
-	mov [0xB8000], word 'X' | 0x700
-	jmp $
     mov rsp, STACK_END
     call kernel_main
 
