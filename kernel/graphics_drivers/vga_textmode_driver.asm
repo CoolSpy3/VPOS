@@ -19,7 +19,6 @@ clear_textmode_buffer:
         cmp ch, 25
         jl .loop
 
-
     popaq
     ret
 
