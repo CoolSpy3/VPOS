@@ -1,31 +1,31 @@
 gdt_start:
 
-gdt_null:
+gdt_null: ; null descriptor
 	dd 0x0
 	dd 0x0
 
-gdt_32_code:
+gdt_32_code: ; This is just for the brief moment when we switch to protected mode
 	dw 0xffff
 	dw 0x0
 	db 0x0
 	db 10011010b
-	db 11011111b
+	db 11001111b
 	db 0x0
 
-gdt_64_code:
-	dw 0xffff
+gdt_64_code: ; Long mode code segment, This wil be running for the rest of the program and is mostly just here to disable segmentation
+	dw 0x0
 	dw 0x0
 	db 0x0
 	db 10011010b
-	db 11011111b
+	db 00100000b
 	db 0x0
 
-gdt_data:
+gdt_data: ; Data segment for both 32 and 64 bit mode
 	dw 0xffff
 	dw 0x0
 	db 0x0
 	db 10010010b
-	db 11001111b
+	db 10001111b
 	db 0x0
 
 gdt_end:
@@ -33,6 +33,7 @@ gdt_end:
 gdt_descriptor:
 	dw gdt_end - gdt_start - 1
 	dd gdt_start
+	dd 0x0 ; This null dword allows the gdt to work in 32 and 64 bit mode
 
 gdt_32_code_seg equ gdt_32_code - gdt_start
 gdt_64_code_seg equ gdt_64_code - gdt_start

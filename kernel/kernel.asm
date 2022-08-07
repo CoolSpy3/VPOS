@@ -1,25 +1,37 @@
 [org 0x1000]
+[bits 32]
+pm_main: ; Unfortunately we have to execute some protected mode code here because the paging datastructures are too large for the first sector
+	mov eax, cr4 ; Set PAE (Physical Address Extension) enable bit and LA57 enable bit
+	; or eax, 0x1020
+	or eax, 0x20
+	mov cr4, eax
+
+	mov eax, page_table
+	mov cr3, eax
+
+	jmp gen_page_table
+
+cont_pm:
+	mov ecx, 0xC0000080 ; Enable long mode
+	rdmsr
+	or eax, 0x0100
+	wrmsr
+
+	mov eax, cr0 ; Enable paging
+	or eax, 0x80000000
+	mov cr0, eax
+
+    jmp 0x10:main ; Jump to long mode (0x10 is the offset to the gdt code segment) (see boot_section/pm_files/gdt.asm)
+
+%include "MMU/page_table.asm"
+
 [bits 64]
 
-%macro pushaq 0
-push rax
-push rbx
-push rcx
-push rdx
-push rsi
-push rdi
-%endmacro
-
-%macro popaq 0
-pop rdi
-pop rsi
-pop rdx
-pop rcx
-pop rbx
-pop rax
-%endmacro
+%include "util/stackmacros.asm"
 
 main:
+	mov [0xB8000], word 'X' | 0x700
+	jmp $
     mov rsp, STACK_END
     call kernel_main
 
@@ -45,3 +57,5 @@ jmp $
 %include "MMU/padding.asm"
 
 FS_START equ $
+
+page_table equ 0x1000000

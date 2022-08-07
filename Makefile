@@ -32,10 +32,10 @@ clean:
 	rm -rf bin
 
 run: bin/live-image
-	qemu-system-i386 -drive format=raw,file=bin/live-image
+	qemu-system-x86_64 -drive format=raw,file=bin/live-image
 
 debug: bin/live-image
-	qemu-system-i386 -D ./log.txt -d guest_errors -drive format=raw,file=bin/live-image
+	qemu-system-x86_64 -D ./log.txt -d guest_errors -drive format=raw,file=bin/live-image
 
 disk: bin/disk.vdi
 
