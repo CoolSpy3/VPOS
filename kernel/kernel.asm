@@ -55,4 +55,4 @@ jmp $
 
 FS_START equ $
 
-page_table equ 0x1000000
+page_table equ 0x100000
