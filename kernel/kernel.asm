@@ -1,20 +1,19 @@
 [org 0x1000]
 [bits 32]
 pm_main: ; Unfortunately we have to execute some protected mode code here because the paging datastructures are too large for the first sector
-	mov eax, cr4 ; Set PAE (Physical Address Extension) enable bit and LA57 enable bit
-	; or eax, 0x1020
+	mov eax, cr4 ; Set PAE (Physical Address Extension) enable bit
 	or eax, 0x20
 	mov cr4, eax
 
-	mov eax, page_table
+	jmp gen_page_table ; Jump (instead of call) so nothing gets pushed to the stack
+
+cont_pm: ; Return from gen_page_table
+	mov eax, page_table ; Store the address of the page table in CR3
 	mov cr3, eax
 
-	jmp gen_page_table
-
-cont_pm:
 	mov ecx, 0xC0000080 ; Enable long mode
 	rdmsr
-	or eax, 0x0100
+	or eax, 0x100
 	wrmsr
 
 	mov eax, cr0 ; Enable paging
