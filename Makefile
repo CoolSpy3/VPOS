@@ -5,7 +5,7 @@ endif
 
 bin/as_kernel.asm: arsenic/kernel_entry.as
 	mkdir -p $(@D)
-	$(ARSENIC_EXE) arsenic bin/as_kernel.asm
+	$(ARSENIC_EXE) -I arsenic -M bin/as_kernel.d -o bin/as_kernel.asm arsenic/kernel_entry.as
 
 bin/boot_section.bin: boot_section/boot_section.asm
 	mkdir -p $(@D)
