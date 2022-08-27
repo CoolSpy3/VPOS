@@ -1,13 +1,32 @@
 [org 0x1000]
-[bits 32]
-pm_main: ; Unfortunately we have to execute some protected mode code here because the paging datastructures are too large for the first sector
+[map all test.map]
+[bits 16]
+rm_main: ; Unfortunately we have to execute some real mode code here to read the memory map
+	call feature_check
+
+	call load_mem_map
+
+	cli
+	lgdt [gdt_descriptor] ; Load GDT and enable protected mode
+	mov eax, cr0
+	or eax, 1
+	mov cr0, eax
+
+	mov ax, gdt_data_seg ; Set all segment registers (except cs) to the data segment
+	mov ds, ax
+	mov ss, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+
+	mov esp, STACK_END
+
 	mov eax, cr4 ; Set PAE (Physical Address Extension) enable bit
 	or eax, 0x20
 	mov cr4, eax
 
-	jmp gen_page_table ; Jump (instead of call) so nothing gets pushed to the stack
+	call gen_page_table
 
-cont_pm: ; Return from gen_page_table
 	mov eax, page_table ; Store the address of the page table in CR3
 	mov cr3, eax
 
@@ -20,8 +39,12 @@ cont_pm: ; Return from gen_page_table
 	or eax, 0x80000000
 	mov cr0, eax
 
-    jmp 0x10:main ; Jump to long mode (0x10 is the offset to the gdt code segment) (see boot_section/pm_files/gdt.asm)
+    jmp gdt_code_seg:main ; Jump to long mode (0x10 is the offset to the gdt code segment) (see boot_section/pm_files/gdt.asm)
 
+%include "feature_check.asm"
+%include "rm_print.asm"
+%include "MMU/gdt.asm"
+%include "MMU/mem_map.asm"
 %include "MMU/page_table.asm"
 
 [bits 64]

@@ -9,11 +9,11 @@ bin/as_kernel.asm: arsenic/kernel_entry.as
 
 bin/boot_section.bin: boot_section/boot_section.asm
 	mkdir -p $(@D)
-	nasm boot_section/boot_section.asm -i boot_section/ -f bin -o bin/boot_section.bin -MD bin/boot_section.d -MP
+	nasm boot_section/boot_section.asm -i boot_section/ -i common/ -f bin -o bin/boot_section.bin -MD bin/boot_section.d -MP
 
 bin/kernel.bin: kernel/kernel.asm
 	mkdir -p $(@D)
-	nasm kernel/kernel.asm -i kernel/ -f bin -o bin/kernel.bin -MD bin/kernel.d -MP
+	nasm kernel/kernel.asm -i kernel/ -i common/ -f bin -o bin/kernel.bin -MD bin/kernel.d -MP
 
 bin/live-image: bin/boot_section.bin bin/kernel.bin
 	cat bin/boot_section.bin bin/kernel.bin > bin/live-image

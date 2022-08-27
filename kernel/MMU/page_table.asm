@@ -1,7 +1,7 @@
 MEM_SIZE equ 64 ; GB (Max 512 gb)
 ; %define LARGE_PAGES ; Use large (1gb) pages
 
-gen_page_table: ; We'll try to do this without the stack, so no guarantees on register clobbering
+gen_page_table: ; This must be called from protected mode to access higher memory
     mov edx, page_table+4096
     mov edi, page_table
 
@@ -74,4 +74,4 @@ gen_page_table: ; We'll try to do this without the stack, so no guarantees on re
         jne .l2loop
 %endif
 
-    jmp cont_pm
+    ret

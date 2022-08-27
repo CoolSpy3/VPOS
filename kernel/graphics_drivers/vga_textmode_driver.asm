@@ -79,7 +79,7 @@ vga_textmode_showhex: ; rax: val, cl: x, ch: y, dl: color
 
     push rcx
 
-    mov rcx, 9
+    mov rcx, 2*8+1
 
     .loop:
     call .readChar
@@ -131,4 +131,4 @@ vga_textmode_showalascharandhang:
 
 hex_string:
     db '0x'
-    times 4*2+1 db 0
+    times 8*2+1 db 0

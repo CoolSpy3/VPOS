@@ -9,9 +9,9 @@ vga_log_space:
 vga_log_newline:
     pushfq
     .with_flags:
-    add [vga_log_col], byte 12
+    add [vga_log_col], byte 4+16
     mov [vga_log_row], byte 0
-    cmp [vga_log_col], byte 80-8
+    cmp [vga_log_col], byte 80-16
     jae vga_log_reset.with_flags
     popfq
     ret

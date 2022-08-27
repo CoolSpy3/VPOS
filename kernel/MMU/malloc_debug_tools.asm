@@ -1,5 +1,3 @@
-
-
 calculate_free_memory:
     mov rax, 0
     push rbx
@@ -122,3 +120,37 @@ validate_memory2:
     .panic:
     mov [0xb8000], word 'Q' | 0x700
     jmp $
+
+dump_mem_map:
+    push rax
+    push rcx
+    push rsi
+    xor rcx, rcx
+    mov cx, [0x8000]
+
+    mov rsi, 0x8002
+
+    .loop:
+        jrcxz .done
+        mov rax, [rsi]
+        call vga_log_rax
+        add rax, [rsi+8]
+        call vga_log_rax
+        mov rax, [rsi+8]
+        call vga_log_rax
+        xor rax, rax
+        mov eax, [rsi+16]
+        call vga_log_rax
+        mov eax, [rsi+20]
+        call vga_log_rax
+        call vga_log_space
+        add rsi, 24
+        dec cx
+        jmp .loop
+
+    .done:
+
+    pop rsi
+    pop rcx
+    pop rax
+    ret

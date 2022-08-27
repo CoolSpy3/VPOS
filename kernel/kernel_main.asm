@@ -5,14 +5,6 @@ kernel_main:
 
     call clear_textmode_buffer
 
-    call vga_log_space
-    call vga_log_space
-    call vga_log_space
-    call vga_log_space
-    mov rax, MEM_START
-    call vga_log_rax
-    mov rax, MEM_END
-    call vga_log_rax
-    call vga_log_rax
+    call dump_mem_map
 
     ret

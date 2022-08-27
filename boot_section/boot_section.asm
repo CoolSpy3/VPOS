@@ -30,34 +30,15 @@ out 0x92, al
 
 cli
 
-lgdt [gdt_descriptor] ; Load the GDT and enable protected mode
-mov eax, cr0
-or eax, 0x1
-mov cr0, eax
-
-jmp gdt_32_code_seg:pm_begin  ; Jump to protected mode(32 bit)
+jmp 0x1000  ; Jump to kernel
 
 jmp $
 
-%include "rm_files/rm_print.asm"
-%include "rm_files/disk_load.asm"
-%include "pm_files/gdt.asm"
+%include "rm_print.asm"
+%include "disk_load.asm"
 
 ss1_boot_msg db 'Booted into ss1', 0x0D, 0x0A, 0
 boot_disk db 0
-
-[bits 32]
-pm_begin:
-	mov ax, gdt_data_seg ; Set all segment registers (except cs) to the data segment
-	mov ds, ax
-	mov ss, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
-
-	jmp 0x1000 ; Unfortunately, we have to jump to the main kernel because the paging datastructures are too large for the first sector
-
-	jmp $
 
 times 510-($-$$) db 0
 dw 0xaa55
