@@ -2,6 +2,9 @@
 [map all test.map]
 [bits 16]
 rm_main: ; Unfortunately we have to execute some real mode code here to read the memory map
+	mov ah, 0
+	int 0x10
+
 	call feature_check
 
 	call load_mem_map
