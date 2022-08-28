@@ -1,16 +1,16 @@
 feature_check:
     ; CPUID check from https://wiki.osdev.org/Setting_Up_Long_Mode#Detection_of_CPUID
-    pushfd
+    pushfd ; Store EFLAGS in EAX
     pop eax
-    mov ecx, eax
-    xor eax, 0x00200000
+    mov ecx, eax ; Copy EFLAGS to ECX
+    xor eax, 0x00200000 ; SET bit 21 (ID bit)
     push eax
-    popfd
+    popfd ; Load EFLAGS with new value
     pushfd
-    pop eax
+    pop eax ; Store new EFLAGS in EAX
     push ecx
-    popfd
-    xor eax, ecx
+    popfd ; Load original EFLAGS
+    xor eax, ecx ; Check if bit 21 was updated
     jz .cpuid_error
 
     .ignore_cpuid:
@@ -18,13 +18,23 @@ feature_check:
     mov eax, 0
     cpuid
 
-    cmp ebx, "Genu" ; This check will fail on QEMU because it uses "AuthenticAMD"
-    jne .genuine_intel_error
+    cmp ebx, "Genu"
+    jne .not_intel
     cmp edx, "ineI"
-    jne .genuine_intel_error
+    jne .not_intel
     cmp ecx, "ntel"
-    jne .genuine_intel_error
-    .ignore_genuine_intel:
+    jne .not_intel
+    jmp .ignore_cpu_unsupported
+
+    .not_intel:
+    cmp ebx, "Auth"
+    jne .cpu_unsupported_error
+    cmp edx, "enti"
+    jne .cpu_unsupported_error
+    cmp ecx, "cAMD"
+    jne .cpu_unsupported_error
+
+    .ignore_cpu_unsupported:
 
     cmp eax, 0x01
     jb .valid_leaves_error
@@ -76,11 +86,13 @@ feature_check:
     %endmacro
 
     featureError cpuid, {"Error! CPU does not support CPUID!"}
-    featureError genuine_intel, {"Error! CPU is not GenuineIntel!"}
+    featureError cpu_unsupported, {"Error! CPU is unsupported!"}
     featureError valid_leaves, {"Error! CPU does not support all CPUID leaves!"}
     featureError long_mode, {"Error! CPU does not support long mode!"}
     featureError msr, {"Error! CPU does not support Model Specific Registers!"}
     featureError paging, {"Error! CPU does not support all paging features!"}
     featureError apic, {"Error! CPU does not support APIC!"}
+
+    %unmacro featureError 2
 
 IGNORE_INFO db "Press any key to ignore...", 0xA, 0xD, 0
