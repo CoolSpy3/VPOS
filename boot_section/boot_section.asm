@@ -1,38 +1,43 @@
 [org 0x7c00]
 [bits 16]
+jmp short boot_section
+nop
 
-xor  ax, ax
-mov  ds, ax
-mov  es, ax
+%include "fat32_bpb.asm"
 
+boot_section:
+    xor  ax, ax
+    mov  ds, ax
+    mov  es, ax
 
-mov  ax, 0x07e0 ;sets up stack
-cli
-mov  ss, ax
-mov  sp, 0x1200
-sti
+    mov  ax, 0x07e0 ;sets up stack
+    cli
+    mov  ss, ax
+    mov  sp, 0x1200
+    sti
 
-mov [boot_disk], dl
-mov bx, 0x1000
-mov dh, 0
-mov ch, 0
-mov cl, 0x02
-mov dl, [boot_disk]
+    kernel_start_sector equ ((kernel_start-$$) / 512) + 1
+    required_sectors equ kernel_size/512
 
-call disk_load
+    mov [boot_disk], dl
+    mov bx, 0x1000
+    mov dh, required_sectors
+    mov dl, [boot_disk]
 
-mov si, ss1_boot_msg
-call rm_print
+    call disk_load
 
-in al, 0x92 ;enable A20 line
-or al, 0x2
-out 0x92, al
+    mov si, ss1_boot_msg
+    call rm_print
 
-cli
+    in al, 0x92 ;enable A20 line
+    or al, 0x2
+    out 0x92, al
 
-jmp 0x1000  ; Jump to kernel
+    cli
 
-jmp $
+    jmp 0x1000  ; Jump to kernel
+
+    jmp $
 
 %include "rm_print.asm"
 %include "disk_load.asm"
@@ -42,3 +47,7 @@ boot_disk db 0
 
 times 510-($-$$) db 0
 dw 0xaa55
+
+%include "fat32_fsinfo.asm"
+
+kernel_start equ $
