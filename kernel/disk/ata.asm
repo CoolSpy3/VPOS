@@ -105,7 +105,7 @@ ata_identify:
 
     .error:
         mov rbx, .error_msg
-        call panic_with_msg
+        jmp panic_with_msg
 
     .error_msg: db "ATA: Invalid Drive", 0
 
