@@ -22,7 +22,6 @@ boot_section:
     mov [boot_disk], dl
     mov bx, 0x1000
     mov dh, required_sectors
-    mov dl, [boot_disk]
 
     call disk_load
 

@@ -1,5 +1,4 @@
 [org 0x1000]
-[map all test.map]
 [bits 16]
 rm_main: ; Unfortunately we have to execute some real mode code here to read the memory map
 	mov ah, 0
@@ -61,6 +60,7 @@ main:
 jmp $
 
 %include "kernel_main.asm"
+%include "disk/ata.asm"
 %include "HAL/idt.asm"
 %include "HAL/pic.asm"
 %include "MMU/malloc.asm"

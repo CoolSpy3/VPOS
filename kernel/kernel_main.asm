@@ -5,6 +5,8 @@ kernel_main:
 
     call clear_textmode_buffer
 
+    call ata_identify
+
     call dump_mem_map
 
     ret
