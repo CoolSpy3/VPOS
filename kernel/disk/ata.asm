@@ -91,16 +91,11 @@ ata_identify:
     .read_data:
 
     ; Read IDENTIFY data
-    mov cx, 256
+    mov rcx, 256
     mov rdi, ata_identify_data
 
     mov dx, 0x1F0
-    .read:
-        in ax, dx
-        mov [rdi], ax
-        add rdi, 2
-        dec cx
-        jnz .read
+    rep insw
 
     pop rdi
     pop rdx
