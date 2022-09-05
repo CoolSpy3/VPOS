@@ -2,6 +2,11 @@
 ; load the OS which worked reliably on QEMU and VirtualBox,
 ; so we'll just assume the selected master drive for all functions
 ata_identify:
+    push rax
+    push rcx
+    push rdx
+    push rdi
+
     ; Execute IDENTIFY command
     mov al, 0xA0
     mov dx, 0x1F6
@@ -87,16 +92,20 @@ ata_identify:
 
     ; Read IDENTIFY data
     mov cx, 256
-    mov rsi, ata_identify_data
+    mov rdi, ata_identify_data
 
     mov dx, 0x1F0
     .read:
         in ax, dx
-        mov [rsi], ax
-        add rsi, 2
+        mov [rdi], ax
+        add rdi, 2
         dec cx
         jnz .read
 
+    pop rdi
+    pop rdx
+    pop rcx
+    pop rax
     ret
 
     .error:
@@ -104,6 +113,116 @@ ata_identify:
         call panic_with_msg
 
     .error_msg: db "ATA: Invalid Drive", 0
+
+ata_read:
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+
+    ; Enable LBA mode
+    mov dx, 0x1F6
+    in al, dx
+    or al, 0x40
+    out dx, al
+
+    test [ata_identify_data+(2*83)], word 0x400 ; Check if LBA48 is supported
+    jnz .lba48
+
+    .lba28:
+        mov rax, rsi ; Send drive select and high bits of LBA
+        shr rax, 24
+        and rax, 0xF
+        or al, 0xE0
+        mov dx, 0x1F6
+        out dx, al
+
+        mov rax, rcx ; Send sector count
+        mov dx, 0x1F2
+        out dx, al
+
+        mov rax, rsi ; Send low bits of LBA
+        mov dx, 0x1F3
+        out dx, al
+        shr rax, 8
+        mov dx, 0x1F4
+        out dx, al
+        shr rax, 8
+        mov dx, 0x1F5
+        out dx, al
+
+        mov al, 0x20 ; Send READ SECTORS command
+        mov dx, 0x1F7
+        out dx, al
+
+        jmp .wait_and_read
+
+
+    .lba48:
+        mov al, 0x40 ; Select drive
+        mov dx, 0x1F6
+        out dx, al
+
+        mov rax, rcx ; Send sector count
+        mov dx, 0x1F2
+        out dx, ax
+
+        mov rax, rsi ; Send LBA
+        mov dx, 0x1F3
+        out dx, ax
+        shr rax, 16
+        mov dx, 0x1F4
+        out dx, ax
+        shr rax, 16
+        mov dx, 0x1F5
+        out dx, ax
+
+        mov al, 0x24 ; Send READ SECTORS EXT command
+        mov dx, 0x1F7
+        out dx, al
+
+    .wait_and_read:
+        mov rbx, rcx
+        .loop:
+            mov dx, 0x1F7
+
+            in al, dx ; Wait for drive to be ready (400 ns delay)
+            in al, dx
+            in al, dx
+            in al, dx
+
+            .wait:
+                in al, dx
+                test al, 0x1
+                jz .error
+                test al, 0x80
+                jnz .wait
+                test al, 0x8
+                jz .wait
+
+            mov dx, 0x1F0
+
+            mov rcx, 256
+            rep insw
+
+            dec rbx
+            jnz .loop
+
+    .done:
+        pop rdi
+        pop rsi
+        pop rdx
+        pop rcx
+        pop rbx
+        pop rax
+        ret
+
+    .error:
+        stc
+        jmp .done
+
 
 ata_device_type: db 0
 ata_identify_data:
