@@ -63,8 +63,14 @@ feature_check:
     jz .cmov_error
     .ignore_cmov:
 
-    test edx, 0x00030048 ; PSE, PAE, PAT, and PSE36
+    push edx
+    test edx, 0x00000008 ; PSE
     jz .paging_error
+    test edx, 0x00010040 ; PAE
+    jz .paging_error
+    test edx, 0x00010000 ; PAT
+    jz .paging_error
+    test edx, 0x00020000 ; PSE36
     .ignore_paging:
 
     test edx, 0x0000200
