@@ -59,9 +59,9 @@ feature_check:
     jz .msr_error
     .ignore_msr:
 
-    test edx, 0x00008000
-    jz .cmov_error
-    .ignore_cmov:
+    ; test edx, 0x00008000
+    ; jz .cmov_error
+    ; .ignore_cmov:
 
     test edx, 0x00000008 ; PSE
     jz .paging_error
@@ -99,7 +99,7 @@ feature_check:
     featureError valid_leaves, {"Error! CPU does not support all CPUID leaves!"}
     featureError long_mode, {"Error! CPU does not support long mode!"}
     featureError msr, {"Error! CPU does not support Model Specific Registers!"}
-    featureError cmov, {"Error! CPU does not support CMOV instructions!"}
+    ; featureError cmov, {"Error! CPU does not support CMOV instructions!"}
     featureError paging, {"Error! CPU does not support all paging features!"}
     featureError apic, {"Error! CPU does not support APIC!"}
 
