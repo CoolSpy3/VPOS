@@ -25,7 +25,7 @@ At the moment, the process for booting the OS is as follows:
 5. Enable [`A20 line`](https://wiki.osdev.org/A20_Line)
 6. Jump to kernel
 7. Make sure CPU supports all required features (See [Feature Checks](#feature-checks))
-8. Load the memory map from BIOS (into `0x8000`) (See [`int 0x15, eax=0xE820'`](https://wiki.osdev.org/Detecting_Memory_(x86)#BIOS_Function:_INT_0x15.2C_EAX_.3D_0xE820))
+8. Load the memory map from BIOS (into `0x8000`) (See [`int 0x15, eax=0xE820`](https://wiki.osdev.org/Detecting_Memory_(x86)#BIOS_Function:_INT_0x15.2C_EAX_.3D_0xE820))
 9. Load [GDT](https://wiki.osdev.org/Global_Descriptor_Table)
 10. Enable protected mode in [`cr0`](https://wiki.osdev.org/CPU_Registers_x86#CR0)
 11. Set all segment registers (besides CS) to the data segment
