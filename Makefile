@@ -16,7 +16,8 @@ bin/boot_section.bin: boot_section/boot_section.asm bin/kernel.bin bin/filesyste
 	mkdir -p $(@D)
 	nasm boot_section/boot_section.asm -i boot_section/ -i common/ -i fat/ -f bin -o bin/boot_section.bin -MD bin/boot_section.d -MP \
 		-dkernel_size=$(shell wc -c < bin/kernel.bin) \
-		-dfat_size=$(shell cat bin/filesystem.fatSize)
+		-dfat_size=$(shell cat bin/filesystem.fatSize) \
+		-dfilesystem_size=$(shell wc -c < bin/filesystem)
 
 bin/kernel.bin: kernel/kernel.asm
 	mkdir -p $(@D)
