@@ -2,3 +2,4 @@
 .vscode
 bin
 log.txt
+__pycache__

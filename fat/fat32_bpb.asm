@@ -17,8 +17,8 @@ fat32_header:
 %else
     dw disk_size ; Total sectors
 %endif
-    db 0 ; Media descriptor
-    dw 0 ; Sectors per FAT (0 for FAT32)
+    db 0xF8 ; Media descriptor
+    dw fat_size ; Sectors per FAT (0 for FAT32)
     dw 0 ; Sectors per track
     dw 0 ; Number of heads
     dd 0 ; Hidden sectors
