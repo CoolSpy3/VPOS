@@ -26,7 +26,10 @@ bin/kernel.bin: kernel/kernel.asm
 bin/live-image: bin/boot_section.bin bin/kernel.bin bin/filesystem
 	cat bin/boot_section.bin bin/kernel.bin bin/filesystem > bin/live-image
 
-bin/filesystem bin/filesystem.fatSize:
+bin/live-image.iso: bin/live-image
+	cp bin/live-image bin/live-image.iso
+
+bin/filesystem bin/filesystem.fatSize: filesystem/build_filesystem.py filesystem/filesystem_builder_utils.py
 	mkdir -p bin/dynamicFiles
 	$(PYTHON) filesystem/build_filesystem.py filesystem/staticFiles bin/dynamicFiles . bin/filesystem
 

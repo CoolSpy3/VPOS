@@ -18,5 +18,4 @@ def getRequiredUnits(size: int, unitSize: int) -> int:
 
 def getShortName(name: str) -> str:
     # TODO: Implement this
-    name = name[:11]
-    return name + (11 - len(name)) * '\0'
+    return 'TESTFILETXT'

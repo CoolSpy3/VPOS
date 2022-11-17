@@ -7,6 +7,8 @@ from filesystem_builder_utils import *
 
 sectorsPerCluster = 1
 
+minClusters = 70000 # Technically 65525, but the documentation stresses that this is easy to get wrong, so use 70000 to be ABSOLUTELY SURE
+
 staticDir = sys.argv[1]   # The directory containing the static files
 dynamicDir = sys.argv[2] # The directory containing the dynamic files
 relReqDir = sys.argv[3]   # The directory which requirements are referenced to
@@ -75,11 +77,11 @@ with open(outfile, 'wb+') as oStream:
     oStream.write(fatEOF)
     currentCluster = 2
 
-    def allocateClusters(numClusters: int) -> None:
+    def allocateClusters(numClusters: int, shadow: bool = False) -> None:
         global currentCluster
         for i in range(numClusters - 1):
             currentCluster += 1
-            oStream.write(dword(currentCluster))
+            oStream.write(dword(0x00000000) if shadow else dword(currentCluster))
 
         currentCluster += 1
         oStream.write(fatEOF)
@@ -99,6 +101,11 @@ with open(outfile, 'wb+') as oStream:
     allocateClusters(getRequiredUnits(rootDirectorySize, sectorsPerCluster * 512))
 
     clusteredFiles = recursivelyClusterFiles(sizedFiles)
+
+    requiredPaddingClusters = minClusters - currentCluster - 1 # -1 because currentCluster is always the NEXT cluster to be allocated
+
+    if requiredPaddingClusters > 0:
+        allocateClusters(requiredPaddingClusters, shadow=True)
 
     # Pad the FAT to the next sector boundary
     oStream.write(b'\x00' * (512 - (currentCluster * 4) % 512))
@@ -121,25 +128,25 @@ with open(outfile, 'wb+') as oStream:
             currentLFNId = getRequiredUnits(len(name), 13)
 
             # Write first LFN entry with padding
-            shortenedName = name[-(len(name) % 13):]
-            paddedName = shortenedName + (13 - len(shortenedName)) * '\0'
+            shortenedName = name[-13 if len(name) % 13 == 0 else -(len(name) % 13):]
+            paddedName = shortenedName + '\0' + b'\xff\xff'.decode('utf-16-le') * 13 # We only use the first 13 characters, so we can pad 13 characters, and extra padding will be ignored
             oStream.write(byte(0x40 | currentLFNId))
             oStream.write(paddedName[:5].encode('utf-16-le'))
             oStream.write(byte(0x0F))
             oStream.write(byte(0x00))
-            oStream.write(byte(0x00)) # Checksum
+            oStream.write(byte(120)) # Checksum
             oStream.write(paddedName[5:11].encode('utf-16-le'))
             oStream.write(word(0x0000))
             oStream.write(paddedName[11:13].encode('utf-16-le'))
             currentLFNId -= 1
 
-            for i in range(len(name) - (len(name) % 13), 0, -13): # Write the LFN entries
+            for i in range(len(name) - len(shortenedName), 0, -13): # Write the LFN entries
                 shortenedName = name[i-13:i]
                 oStream.write(byte(currentLFNId))
                 oStream.write(shortenedName[:5].encode('utf-16-le'))
                 oStream.write(byte(0x0F))
                 oStream.write(byte(0x00))
-                oStream.write(byte(0x00)) # Checksum
+                oStream.write(byte(120)) # Checksum
                 oStream.write(shortenedName[5:11].encode('utf-16-le'))
                 oStream.write(word(0x0000))
                 oStream.write(shortenedName[11:13].encode('utf-16-le'))
@@ -171,6 +178,9 @@ with open(outfile, 'wb+') as oStream:
                 padCluster(file[1])
 
     recursivelyWriteDirectory(clusteredFiles, rootDirectorySize)
+
+    if requiredPaddingClusters > 0:
+        oStream.write(byte(0x00) * (sectorsPerCluster * 512 * requiredPaddingClusters))
 
 requiredFiles = []
 

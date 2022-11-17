@@ -12,35 +12,27 @@ fat32_header:
     dw reserved_sectors ; Reserved sectors
     db 1 ; Number of FATs
     dw 0 ; Root directory entries (0 for FAT32)
-%if disk_size > 0xFFFF
-    dw 0 ; Total sectors
-%else
-    dw disk_size ; Total sectors
-%endif
+    dw 0 ; Total sectors (0 for FAT32)
     db 0xF8 ; Media descriptor
     dw 0 ; Sectors per FAT (0 for FAT32)
     dw 0 ; Sectors per track
     dw 0 ; Number of heads
     dd 0 ; Hidden sectors
-%if disk_size > 0xFFFF
-    dd disk_size ; Total sectors (if above is 0)
-%else
-    dd 0 ; Total sectors (if above is 0)
-%endif
+    dd disk_size ; Total sectors
 
     ; FAT 32
     dd fat_size ; Sectors per FAT
-    dw 0x41 ; Flags
-    dw 0x0103 ; FAT version
-    dd reserved_sectors + 1 ; Root directory cluster
-    dw 2 ; FSInfo sector
-    dw 1 ; Backup boot sector
+    dw 0x0 ; Flags
+    dw 0x0 ; FAT version
+    dd 2 ; Root directory cluster
+    dw 1 ; FSInfo sector
+    dw 0 ; Backup boot sector
     times 12 db 0 ; Reserved
     db 0x80 ; Drive number
     db 0 ; Reserved
     db 0x29 ; Boot signature
     dd 0 ; Volume ID
-    db "VPOS Boot  " ; Volume label
+    db "NO NAME    " ; Volume label
     db "FAT32   " ; File system type
 
 %if ($-$$) != 0x05A
