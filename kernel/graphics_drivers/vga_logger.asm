@@ -119,6 +119,34 @@ vga_log_byte_at_rdx:
     pop rax
     ret
 
+vga_log_qword_at_rax:
+    push rax
+    mov rax, [rax]
+    call vga_log_rax
+    pop rax
+    ret
+
+vga_log_qword_at_rbx:
+    push rax
+    mov rax, [rbx]
+    call vga_log_rax
+    pop rax
+    ret
+
+vga_log_qword_at_rcx:
+    push rax
+    mov rax, [rcx]
+    call vga_log_rax
+    pop rax
+    ret
+
+vga_log_qword_at_rdx:
+    push rax
+    mov rax, [rdx]
+    call vga_log_rax
+    pop rax
+    ret
+
 vga_dump_mem_at_rax:
     push rax
     push rcx
@@ -155,6 +183,45 @@ vga_dump_mem_at_rdx:
     push rax
     mov rax, rdx
     call vga_dump_mem_at_rax
+    pop rax
+    ret
+
+vga_dump_long_mem_at_rax:
+    push rax
+    push rcx
+    pushfq
+    mov rcx, 0
+
+    .loop:
+        call vga_log_qword_at_rax
+        add rax, 8
+        inc rcx
+        cmp rcx, 20
+        jb .loop
+
+    popfq
+    pop rcx
+    pop rax
+    ret
+
+vga_dump_long_mem_at_rbx:
+    push rax
+    mov rax, rbx
+    call vga_dump_long_mem_at_rax
+    pop rax
+    ret
+
+vga_dump_long_mem_at_rcx:
+    push rax
+    mov rax, rcx
+    call vga_dump_long_mem_at_rax
+    pop rax
+    ret
+
+vga_dump_long_mem_at_rdx:
+    push rax
+    mov rax, rdx
+    call vga_dump_long_mem_at_rax
     pop rax
     ret
 

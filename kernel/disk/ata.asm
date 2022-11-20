@@ -109,7 +109,7 @@ ata_identify:
 
     .error_msg: db "ATA: Invalid Drive", 0
 
-ata_read:
+ata_read: ; esi = lba, edi = buffer, ecx = count
     push rax
     push rbx
     push rcx

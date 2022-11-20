@@ -75,7 +75,8 @@ jmp $
 %include "util/spinlock.asm"
 
 %include "MMU/stack.asm"
-%include "MMU/ram.asm"
+; %include "MMU/staticram.asm"
+%include "MMU/dynamicram.asm"
 
 %include "MMU/padding.asm"
 

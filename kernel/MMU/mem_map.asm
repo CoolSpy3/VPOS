@@ -13,7 +13,7 @@ load_mem_map:
 
     mov eax, 0xe820
     xor ebx, ebx
-    mov ecx, 24
+    mov ecx, 32
     mov edx, SMAP
 
     int 0x15
@@ -31,7 +31,7 @@ load_mem_map:
     test eax, eax
     je .empty_entry1
 
-    cmp ecx, 24
+    cmp ecx, 32
     jae .ext1
     mov [es:di+20], dword 1 ; No extended flags loaded, so set the extended flags to 1 (Entry exists)
     .ext1:
@@ -41,24 +41,25 @@ load_mem_map:
     .empty_entry1:
 
     .loop:
-        add di, 24
+        test ebx, ebx
+        je .done
+
+        add di, 32
 
         mov eax, 0xe820
-        mov ecx, 24
+        mov ecx, 32
         mov edx, SMAP
 
         int 0x15
 
         jc .done
-        test ebx, ebx
-        je .done
 
         mov eax, dword [es:di+8]
         or eax, dword [es:di+16]
         test eax, eax
         je .loop
 
-        cmp ecx, 24
+        cmp ecx, 32
         jae .ext
         mov [es:di+20], dword 1 ; No extended flags loaded, so set the extended flags to 1 (Entry exists)
         .ext:
