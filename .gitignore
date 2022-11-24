@@ -1,4 +1,5 @@
 *.bin
+*.mem
 .vscode
 bin
 log.txt
