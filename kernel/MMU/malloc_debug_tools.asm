@@ -125,8 +125,7 @@ dump_mem_map:
     push rax
     push rcx
     push rsi
-    xor rcx, rcx
-    mov cx, [0x8000]
+    movsx rcx, word [0x8000]
 
     mov rsi, 0x8002
 
@@ -138,8 +137,7 @@ dump_mem_map:
         call vga_log_rax ; End Pos
         mov rax, [rsi+8]
         call vga_log_rax ; Length
-        xor rax, rax
-        mov eax, [rsi+16]
+        movsxd rax, [rsi+16]
         call vga_log_rax ; Type
         mov eax, [rsi+20]
         call vga_log_rax ; Extended Attributes
