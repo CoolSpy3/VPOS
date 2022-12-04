@@ -1,5 +1,5 @@
 ifeq ($(OS),Windows_NT)
--include bin/boot_section.d
+-include bin/boot_section.bin.d
 -include bin/kernel.d
 PYTHON = python
 else
@@ -12,23 +12,25 @@ bin/as_kernel.asm: arsenic/kernel_entry.as
 	mkdir -p $(@D)
 	$(ARSENIC_EXE) -I arsenic -M bin/as_kernel.d -P -T bin/as_kernel.asm -o bin/as_kernel.asm arsenic/kernel_entry.as
 
-bin/boot_section.bin: boot_section/boot_section.asm bin/kernel.bin bin/filesystem.fatSize
+bin/boot_section.bin: boot_section/boot_section.asm bin/kernel.bin bin/kernel.size bin/filesystem.size bin/filesystem.bin.fatSize
 	mkdir -p $(@D)
 	nasm boot_section/boot_section.asm -i boot_section/ -i common/ -i fat/ -f bin -o bin/boot_section.bin -MD bin/boot_section.d -MP \
-		-dkernel_size=$(shell wc -c < bin/kernel.bin) \
-		-dfat_size=$(shell cat bin/filesystem.fatSize) \
-		-dfilesystem_size=$(shell wc -c < bin/filesystem)
+		-dkernel_size=$(shell cat bin/kernel.size) \
+		-dfat_size=$(shell cat bin/filesystem.bin.fatSize) \
+		-dfilesystem_size=$(shell cat bin/filesystem.size)
 
-bin/kernel.bin: kernel/kernel.asm
+bin/kernel.bin bin/kernel.size: kernel/kernel.asm
 	mkdir -p $(@D)
 	nasm kernel/kernel.asm -i kernel/ -i common/ -f bin -o bin/kernel.bin -MD bin/kernel.d -MP
+	wc -c < bin/kernel.bin > bin/kernel.size
 
-bin/live-image: bin/boot_section.bin bin/kernel.bin bin/filesystem
-	cat bin/boot_section.bin bin/kernel.bin bin/filesystem > bin/live-image
+bin/live-image.bin: bin/boot_section.bin bin/kernel.bin bin/filesystem.bin
+	cat bin/boot_section.bin bin/kernel.bin bin/filesystem.bin > bin/live-image.bin
 
-bin/filesystem bin/filesystem.fatSize: filesystem/build_filesystem.py filesystem/filesystem_builder_utils.py
+bin/filesystem.bin bin/filesystem.size bin/filesystem.bin.fatSize: filesystem/build_filesystem.py filesystem/filesystem_builder_utils.py
 	mkdir -p bin/dynamicFiles
-	$(PYTHON) filesystem/build_filesystem.py filesystem/staticFiles bin/dynamicFiles . bin/filesystem
+	$(PYTHON) filesystem/build_filesystem.py filesystem/staticFiles bin/dynamicFiles . bin/filesystem.bin
+	wc -c < bin/filesystem.bin > bin/filesystem.size
 
 bin/disk.vdi: bin/live-image
 	rm -f bin/disk.vdi
@@ -36,18 +38,18 @@ bin/disk.vdi: bin/live-image
 
 .PHONY: build rebuild clean run debug disk run-vbox
 
-build: bin/live-image
+build: bin/live-image.bin
 
 rebuild: | clean build
 
 clean:
 	rm -rf bin
 
-run: bin/live-image
-	qemu-system-x86_64 -drive format=raw,file=bin/live-image
+run: bin/live-image.bin
+	qemu-system-x86_64 -drive format=raw,file=bin/live-image.bin
 
-debug: bin/live-image
-	qemu-system-x86_64 -D ./log.txt -d guest_errors -drive format=raw,file=bin/live-image
+debug: bin/live-image.bin
+	qemu-system-x86_64 -D ./log.txt -d guest_errors -drive format=raw,file=bin/live-image.bin
 
 disk: bin/disk.vdi
 

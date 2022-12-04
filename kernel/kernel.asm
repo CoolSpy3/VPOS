@@ -10,17 +10,19 @@ rm_main: ; Unfortunately we have to execute some real mode code here to read the
 
     mov ax, 0xE801 ; Get length of extended memory
     int 0x15
-	jc rm_panic ; Function unsupported
+	jc ext_mem_err ; Function unsupported
 	cmp ah, 0x86
-	je rm_panic ; Function unsupported
+	je ext_mem_err ; Function unsupported
 	cmp ah, 0x80
-	je rm_panic ; Invalid command
+	je ext_mem_err ; Invalid command
 	cmp ax, cx
-	jne rm_panic ; assert ax=cx
+	jne ext_mem_err ; assert ax=cx
 	cmp bx, dx
-	jne rm_panic ; assert bx=dx
+	jne ext_mem_err ; assert bx=dx
+	ignore_ext_mem_err:
 	cmp ax, 0x3C00 ; 15MiB
-	jb rm_panic ; The 15MiB hole exists; the code is not built to handle this
+	jb mem_hole_exists ; The 15MiB hole exists; the code is not built to handle this
+	ignore_mem_hole:
 	shr dx, 4 ; Convert to num of 1MiB blocks
 	add dx, 15 ; 15MiB of memory below 16MiB (No memory hole)
 	shr dx, 1 ; Convert to num of 2MiB blocks
@@ -63,10 +65,30 @@ rm_main: ; Unfortunately we have to execute some real mode code here to read the
 
     jmp gdt_code_seg:main ; Jump to long mode (0x10 is the offset to the gdt code segment) (see boot_section/pm_files/gdt.asm)
 
-rm_panic:
-	mov ax, 0x0e50
-	int 0x10
-    jmp $
+
+ext_mem_err:
+	mov si, MEM_LEN_READ_ERR
+	call rm_print
+	call rm_dump_regs
+	mov si, IGNORE_INFO
+	call rm_print
+	xor ah, ah
+	int 0x16
+	jmp ignore_ext_mem_err
+
+mem_hole_exists:
+	mov si, MEM_HOLE_ERR
+	call rm_print
+	call rm_dump_regs
+	mov si, IGNORE_INFO
+	call rm_print
+	xor ah, ah
+	int 0x16
+	jmp ignore_mem_hole
+
+MEM_LEN_READ_ERR db "Error retrieving length of extended memory!", 0xA, 0xD, 0
+MEM_HOLE_ERR db "Error! The system is not designed to handle the 15MiB memory hole!", 0xA, 0xD, 0
+IGNORE_INFO db "Press any key to ignore...", 0xA, 0xD, 0
 
 %include "feature_check.asm"
 %include "rm_print.asm"

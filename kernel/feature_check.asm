@@ -104,5 +104,3 @@ feature_check:
     featureError apic, {"Error! CPU does not support APIC!"}
 
     %unmacro featureError 2
-
-IGNORE_INFO db "Press any key to ignore...", 0xA, 0xD, 0
