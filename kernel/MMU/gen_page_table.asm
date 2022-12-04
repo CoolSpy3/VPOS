@@ -1,24 +1,27 @@
-MEM_SIZE equ 64 ; GB (Max 512 gb)
 ; %define LARGE_PAGES ; Use large (1gb) pages
 
 gen_page_table: ; This must be called from protected mode to access higher memory
     mov edx, page_table+4096
     mov edi, page_table
 
+    movzx ebx, word [EXT_MEM_LEN]
+
     ; We will use esi as a backup variable so we can avoid the stack
 
-    mov ecx, 0
+    xor cx, cx
     or edx, 7
     .l4loop:
         mov [edi], edx
         mov [edi+4], dword 0
         add edi, 8
         add edx, 4096
-        inc ecx
-        cmp ecx, MEM_SIZE
+        inc cx
+        cmp cx, [EXT_MEM_LEN]
         jne .l4loop
 
-%if MEM_SIZE < 512
+    cmp ebx, 512
+    jae .skip_l4zloop
+
     .l4zloop:
         mov [edi], dword 0
         mov [edi+4], dword 0
@@ -26,7 +29,10 @@ gen_page_table: ; This must be called from protected mode to access higher memor
         inc ecx
         cmp ecx, 512
         jne .l4zloop
-%endif
+
+    .skip_l4zloop:
+
+    shl ebx, 9
 
 %ifdef LARGE_PAGES
     mov ecx, 0
@@ -43,7 +49,7 @@ gen_page_table: ; This must be called from protected mode to access higher memor
         mov edx, esi
         inc edx
         inc ecx
-        cmp ecx, 512*MEM_SIZE
+        cmp ecx, ebx
         jne .l3loop
 %else
     mov ecx, 0
@@ -53,8 +59,10 @@ gen_page_table: ; This must be called from protected mode to access higher memor
         add edi, 8
         add edx, 4096
         inc ecx
-        cmp ecx, 512*MEM_SIZE
+        cmp ecx, ebx
         jne .l3loop
+
+    shl ebx, 9
 
     mov ecx, 0
     mov edx, 0
@@ -70,8 +78,6 @@ gen_page_table: ; This must be called from protected mode to access higher memor
         mov edx, esi
         inc edx
         inc ecx
-        cmp ecx, 512*512*MEM_SIZE
+        cmp ecx, ebx
         jne .l2loop
 %endif
-
-    ret

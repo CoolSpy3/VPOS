@@ -8,6 +8,26 @@ rm_main: ; Unfortunately we have to execute some real mode code here to read the
 
 	call load_mem_map
 
+    mov ax, 0xE801 ; Get length of extended memory
+    int 0x15
+	jc rm_panic ; Function unsupported
+	cmp ah, 0x86
+	je rm_panic ; Function unsupported
+	cmp ah, 0x80
+	je rm_panic ; Invalid command
+	cmp ax, cx
+	jne rm_panic ; assert ax=cx
+	cmp bx, dx
+	jne rm_panic ; assert bx=dx
+	cmp ax, 0x3C00 ; 15MiB
+	jb rm_panic ; The 15MiB hole exists; the code is not built to handle this
+	shr dx, 4 ; Convert to num of 1MiB blocks
+	add dx, 15 ; 15MiB of memory below 16MiB (No memory hole)
+	shr dx, 1 ; Convert to num of 2MiB blocks
+    mov [EXT_MEM_LEN], dx
+	; This will be an under-approximation, but it's only neccessary to establish page tables
+	; until we can update them with a more precise memory map from the E820 function
+
 	cli
 	lgdt [gdt_descriptor] ; Load GDT and enable protected mode
 	mov eax, cr0
@@ -27,7 +47,7 @@ rm_main: ; Unfortunately we have to execute some real mode code here to read the
 	or eax, 0x20
 	mov cr4, eax
 
-	call gen_page_table
+%include "MMU/gen_page_table.asm"
 
 	mov eax, page_table ; Store the address of the page table in CR3
 	mov cr3, eax
@@ -43,11 +63,15 @@ rm_main: ; Unfortunately we have to execute some real mode code here to read the
 
     jmp gdt_code_seg:main ; Jump to long mode (0x10 is the offset to the gdt code segment) (see boot_section/pm_files/gdt.asm)
 
+rm_panic:
+	mov ax, 0x0e50
+	int 0x10
+    jmp $
+
 %include "feature_check.asm"
 %include "rm_print.asm"
 %include "MMU/gdt.asm"
 %include "MMU/mem_map.asm"
-%include "MMU/page_table.asm"
 
 [bits 64]
 
@@ -63,23 +87,18 @@ jmp $
 %include "disk/ata.asm"
 %include "HAL/idt.asm"
 %include "HAL/pic.asm"
-%include "MMU/malloc.asm"
-%include "MMU/malloc_debug_tools.asm"
+%include "MMU/mmu_debug_tools.asm"
 %include "graphics_drivers/vga_logger.asm"
 %include "graphics_drivers/vga_serial_driver.asm"
 %include "graphics_drivers/vga_textmode_driver.asm"
-%include "util/arraylist.asm"
-%include "util/hashmap.asm"
 %include "util/panic.asm"
-%include "util/string.asm"
 %include "util/spinlock.asm"
 
 %include "MMU/stack.asm"
-; %include "MMU/staticram.asm"
-%include "MMU/dynamicram.asm"
 
 %include "MMU/padding.asm"
 
 FS_START equ $
 
-page_table equ 0x101000
+EXT_MEM_LEN dw 0
+page_table equ 0x100000
