@@ -7,13 +7,9 @@ kernel_main:
     movzx rbx, word [EXT_MEM_LEN]
     call vga_log_rbx
     call vga_log_space
-
     call dump_mem_map
 
-    ; call format_mem_map
-
-    call vga_log_space
-
-    ; call expand_page_table
+    call format_mem_map
+    call expand_page_table
 
     ret
