@@ -17,7 +17,7 @@ boot_section:
     sti
 
     kernel_start_sector equ ((kernel_start-$$) / 512) + 1
-    required_sectors equ kernel_size/512
+    required_sectors equ kernel_size
 
     mov [boot_disk], dl
     mov bx, 0x1000

@@ -10,4 +10,10 @@ kernel_main:
 
     call dump_mem_map
 
+    ; call format_mem_map
+
+    call vga_log_space
+
+    ; call expand_page_table
+
     ret

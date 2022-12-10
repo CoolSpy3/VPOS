@@ -14,15 +14,18 @@ bin/as_kernel.asm: arsenic/kernel_entry.as
 
 bin/boot_section.bin: boot_section/boot_section.asm bin/kernel.bin bin/kernel.size bin/filesystem.size bin/filesystem.bin.fatSize
 	mkdir -p $(@D)
-	nasm boot_section/boot_section.asm -i boot_section/ -i common/ -i fat/ -f bin -o bin/boot_section.bin -MD bin/boot_section.d -MP \
+	nasm boot_section/boot_section.asm -i boot_section/ -i common/ -i fat/ -f bin -o bin/boot_section.bin -MD bin/boot_section.d -MP -werror \
 		-dkernel_size=$(shell cat bin/kernel.size) \
 		-dfat_size=$(shell cat bin/filesystem.bin.fatSize) \
 		-dfilesystem_size=$(shell cat bin/filesystem.size)
 
 bin/kernel.bin bin/kernel.size: kernel/kernel.asm
 	mkdir -p $(@D)
-	nasm kernel/kernel.asm -i kernel/ -i common/ -f bin -o bin/kernel.bin -MD bin/kernel.d -MP
+	nasm kernel/kernel.asm -i kernel/ -i common/ -f bin -o bin/kernel.bin -MD bin/kernel.d -MP -werror
 	wc -c < bin/kernel.bin > bin/kernel.size
+	awk '{ print $$1/512 }' bin/kernel.size > bin/kernel.size.tmp
+	cat bin/kernel.size.tmp > bin/kernel.size
+	rm bin/kernel.size.tmp
 
 bin/live-image.bin: bin/boot_section.bin bin/kernel.bin bin/filesystem.bin
 	cat bin/boot_section.bin bin/kernel.bin bin/filesystem.bin > bin/live-image.bin
@@ -31,6 +34,9 @@ bin/filesystem.bin bin/filesystem.size bin/filesystem.bin.fatSize: filesystem/bu
 	mkdir -p bin/dynamicFiles
 	$(PYTHON) filesystem/build_filesystem.py filesystem/staticFiles bin/dynamicFiles . bin/filesystem.bin
 	wc -c < bin/filesystem.bin > bin/filesystem.size
+	awk '{ print $$1/512 }' bin/filesystem.size > bin/filesystem.size.tmp
+	cat bin/filesystem.size.tmp > bin/filesystem.size
+	rm bin/filesystem.size.tmp
 
 bin/disk.vdi: bin/live-image
 	rm -f bin/disk.vdi

@@ -25,7 +25,10 @@ rm_main: ; Unfortunately we have to execute some real mode code here to read the
 	ignore_mem_hole:
 	shr dx, 4 ; Convert to num of 1MiB blocks
 	add dx, 15 ; 15MiB of memory below 16MiB (No memory hole)
-	shr dx, 1 ; Convert to num of 2MiB blocks
+	shr dx, 10 ; Convert to num of 1GiB blocks
+	cmp dx, 0
+	mov ax, 1
+	cmove dx, ax ; Ensure that there is at least 1GiB of memory allocated
     mov [EXT_MEM_LEN], dx
 	; This will be an under-approximation, but it's only neccessary to establish page tables
 	; until we can update them with a more precise memory map from the E820 function
@@ -109,6 +112,7 @@ jmp $
 %include "disk/ata.asm"
 %include "HAL/idt.asm"
 %include "HAL/pic.asm"
+%include "MMU/kalloc.asm"
 %include "MMU/mmu_debug_tools.asm"
 %include "graphics_drivers/vga_logger.asm"
 %include "graphics_drivers/vga_serial_driver.asm"
@@ -118,9 +122,11 @@ jmp $
 
 %include "MMU/stack.asm"
 
+EXT_MEM_LEN dw 0
+FREE_MEM dq page_table
+
 %include "MMU/padding.asm"
 
 FS_START equ $
 
-EXT_MEM_LEN dw 0
 page_table equ 0x100000

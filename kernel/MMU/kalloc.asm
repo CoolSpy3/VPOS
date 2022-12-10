@@ -1,3 +1,131 @@
+[bits 64]
+kalloc: ; Returns mem in rax
+    push rcx
+    push rdi
+
+    xor rax, rax
+    mov rdi, [FREE_MEM]
+    mov rcx, 512
+    rep stosq
+    mov [FREE_MEM], rdi
+
+    mov rax, rdi
+    sub rax, 4096
+
+    pop rdi
+    pop rcx
+    ret
+
+kfree: ; Frees mem in rax
+    push rbx
+
+    mov rbx, [FREE_MEM]
+    mov [rax], rbx
+    mov [FREE_MEM], rax
+
+    pop rbx
+    ret
+
+expand_page_table:
+    push rax
+    push rbx
+    push rdx
+
+    movzx rbx, word [0x8000]
+    shl rbx, 5
+    add rbx, 0x8002
+
+    .find_end_addr_loop:
+        cmp qword [rbx+8+32], 0
+        jz .find_end_addr_loop_done
+        add rbx, 32
+        jmp .find_end_addr_loop
+
+    .find_end_addr_loop_done:
+
+    mov rbx, [rbx+8] ; rbx = max addr
+    xor rdx, rdx
+
+    mov rax, 2*1024*1024*1024 ; Workaround for the lack of a add r64, imm64 instruction
+
+    .expand_loop:
+        cmp rdx, rbx
+        jb .expand_loop_done
+        call .expand_to_include
+        add rdx, rax
+        jmp .expand_loop
+
+    .expand_loop_done:
+
+    pop rdx
+    pop rbx
+    pop rax
+    ret
+
+    .expand_to_include:
+        push rax
+        push rbx
+        push rsi
+
+        mov rax, rdx
+        shr rax, 39
+        lea rsi, [page_table+rax*8]
+        mov rbx, [rsi]
+        mov rax, ~0xF000000000000000 ; Workaround for the lack of an and r64, imm64 instruction
+        and rbx, rax ; Clear the execute disable bit
+        test rbx, 1
+        jz .allocate_pdpt
+
+        and rbx, ~4095 ; Clear flags
+        jmp .pdpt_allocated
+
+        .allocate_pdpt:
+        call kalloc
+        mov [rsi], rax
+        or [rsi], byte 7 ; Set present, read/write, and user bits
+
+        .pdpt_allocated:
+
+        mov rax, rdx
+        shr rax, 30
+        and rax, 511
+        lea rsi, [rbx+rax*8]
+        mov rbx, [rsi]
+        mov rax, ~0xF000000000000000 ; Workaround for the lack of an and r64, imm64 instruction
+        and rbx, rax ; Clear the execute disable bit
+        test rbx, 1
+        jz .allocate_pd
+
+        and rbx, ~4095 ; Clear flags
+        jmp .pd_allocated
+
+        .allocate_pd:
+        call kalloc
+        mov [rsi], rax
+        or [rsi], byte 7 ; Set present, read/write, and user bits
+
+        .pd_allocated:
+
+        mov rax, rdx
+        shr rax, 21
+        and rax, 511
+        lea rsi, [rbx+rax*8]
+        mov rbx, [rsi]
+        mov rax, ~0xF000000000000000 ; Workaround for the lack of an and r64, imm64 instruction
+        and rbx, rax ; Clear the execute disable bit
+        test rbx, 1
+        jnz .entry_mapped
+
+        mov [rsi], rdx
+        or [rsi], byte 0x87 ; Set present, read/write, user, and page size bits
+
+        .entry_mapped:
+
+        pop rsi
+        pop rbx
+        pop rax
+        ret
+
 ; 1. Calculate the bounds of all memory
 ; 2. For each region in the memory map, compare all intersecting regions in the existing map, and overwrite if necessary
 ; 3. Loop through all the regions and merge any that are contiguous
@@ -10,8 +138,7 @@ format_mem_map:
     push rdi
 
     mov rsi, 0x8002 ; Set correct values for rsi, rdi, and rcx
-    mov rcx, [rsi-2]
-    and rcx, 0xFFFF
+    movzx rcx, word [rsi-2]
     push rcx
     mov rdi, 0x8002
     shl rcx, 5

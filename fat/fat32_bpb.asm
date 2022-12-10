@@ -2,8 +2,8 @@
     %error "FAT32 header is not at the correct offset"
 %endif
 
-reserved_sectors equ ((kernel_size/512)+2)
-disk_size equ reserved_sectors+(filesystem_size/512)
+reserved_sectors equ (kernel_size+2)
+disk_size equ reserved_sectors+filesystem_size
 
 fat32_header:
     db "VPOSVPOS" ; OEM Identifier

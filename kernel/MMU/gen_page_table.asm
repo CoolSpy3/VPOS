@@ -1,6 +1,4 @@
-; %define LARGE_PAGES ; Use large (1gb) pages
-
-gen_page_table: ; This must be called from protected mode to access higher memory
+gen_page_table: ; This must be run from protected mode to access higher memory
     mov edx, page_table+4096
     mov edi, page_table
 
@@ -8,15 +6,20 @@ gen_page_table: ; This must be called from protected mode to access higher memor
 
     ; We will use esi as a backup variable so we can avoid the stack
 
-    xor cx, cx
+    mov esi, ebx
+    shr ebx, 9
+    mov ecx, 1
+    cmp ebx, 0
+    cmove ebx, ecx
+    xor ecx, ecx
     or edx, 7
     .l4loop:
         mov [edi], edx
         mov [edi+4], dword 0
         add edi, 8
         add edx, 4096
-        inc cx
-        cmp cx, [EXT_MEM_LEN]
+        inc ecx
+        cmp ecx, ebx
         jne .l4loop
 
     cmp ebx, 512
@@ -32,26 +35,8 @@ gen_page_table: ; This must be called from protected mode to access higher memor
 
     .skip_l4zloop:
 
-    shl ebx, 9
+    mov ebx, esi
 
-%ifdef LARGE_PAGES
-    mov ecx, 0
-    mov edx, 0
-    .l3loop:
-        mov esi, edx
-        shl edx, 30
-        or edx, 0x87
-        mov [edi], edx
-        mov edx, esi
-        shr edx, 32-30
-        mov [edi+4], edx
-        add edi, 8
-        mov edx, esi
-        inc edx
-        inc ecx
-        cmp ecx, ebx
-        jne .l3loop
-%else
     mov ecx, 0
     .l3loop:
         mov [edi], edx
@@ -61,6 +46,19 @@ gen_page_table: ; This must be called from protected mode to access higher memor
         inc ecx
         cmp ecx, ebx
         jne .l3loop
+
+    cmp ebx, 512
+    jae .skip_l3zloop
+
+    .l3zloop:
+        mov [edi], dword 0
+        mov [edi+4], dword 0
+        add edi, 8
+        inc ecx
+        cmp ecx, 512
+        jne .l3zloop
+
+    .skip_l3zloop:
 
     shl ebx, 9
 
@@ -80,4 +78,5 @@ gen_page_table: ; This must be called from protected mode to access higher memor
         inc ecx
         cmp ecx, ebx
         jne .l2loop
-%endif
+
+    mov [FREE_MEM], edi
