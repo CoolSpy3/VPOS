@@ -1,4 +1,3 @@
-[bits 64]
 kalloc: ; Returns mem in rax
     push rcx
     push rdi
