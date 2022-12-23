@@ -18,9 +18,29 @@ setup_kernel_memory:
 
     .LIMIT_MSG: db "Over 512GiB of memory detected! This is not supported!", 0
 
+seq_alloc: ; Returns mem in rax
+    push rcx
+    push rdi
+
+    xor rax, rax
+    mov rdi, [FREE_MEM]
+    mov rcx, 512
+    rep stosq
+    mov [FREE_MEM], rdi
+
+    mov rax, rdi
+    sub rax, 4096
+
+    pop rdi
+    pop rcx
+    ret
+
 expand_page_table:
+    push rax
     push rbx
+    push rcx
     push rdx
+    push r8
 
     movzx rbx, word [0x8000]
     shl rbx, 5
@@ -34,84 +54,26 @@ expand_page_table:
 
     .find_end_addr_loop_done:
 
-    mov rbx, [rbx+8] ; rbx = max addr
-    xor rdx, rdx
+    mov r8, [rbx+8] ; r8 = max addr
+    xor rax, rax
+    mov rcx, 0x106 ; Set Global, Supervisor, and Write bits
+    mov rdx, 1
 
     .expand_loop:
-        cmp rdx, rbx
+        cmp rax, r8
         jb .expand_loop_done
-        call .expand_to_include
-        add rdx, 2*1024*1024
+        call map_page
+        add rax, 2*1024*1024
         jmp .expand_loop
 
     .expand_loop_done:
 
+    pop r8
     pop rdx
+    pop rcx
     pop rbx
+    pop rax
     ret
-
-    .expand_to_include:
-        push rax
-        push rbx
-        push rsi
-
-        mov rax, rdx
-        shr rax, 39
-        lea rsi, [page_table+rax*8]
-        mov rbx, [rsi]
-        btr rbx, 63 ; Clear the execute disable bit
-        test rbx, 1
-        jz .allocate_pdpt
-
-        and rbx, ~4095 ; Clear flags
-        jmp .pdpt_allocated
-
-        .allocate_pdpt:
-        call kalloc
-        mov [rsi], rax
-        mov rbx, rax
-        or [rsi], byte 7 ; Set present, read/write, and user bits
-
-        .pdpt_allocated:
-
-        mov rax, rdx
-        shr rax, 30
-        and rax, 511
-        lea rsi, [rbx+rax*8]
-        mov rbx, [rsi]
-        btr rbx, 63 ; Clear the execute disable bit
-        test rbx, 1
-        jz .allocate_pd
-
-        and rbx, ~4095 ; Clear flags
-        jmp .pd_allocated
-
-        .allocate_pd:
-        call kalloc
-        mov [rsi], rax
-        mov rbx, rax
-        or [rsi], byte 7 ; Set present, read/write, and user bits
-
-        .pd_allocated:
-
-        mov rax, rdx
-        shr rax, 21
-        and rax, 511
-        lea rsi, [rbx+rax*8]
-        mov rbx, [rsi]
-        btr rbx, 63 ; Clear the execute disable bit
-        test rbx, 1
-        jnz .entry_mapped
-
-        mov [rsi], rdx
-        or [rsi], byte 0x87 ; Set present, read/write, user, and page size bits
-
-        .entry_mapped:
-
-        pop rsi
-        pop rbx
-        pop rax
-        ret
 
 ; 1. Calculate the bounds of all memory
 ; 2. For each region in the memory map, compare all intersecting regions in the existing map, and overwrite if necessary

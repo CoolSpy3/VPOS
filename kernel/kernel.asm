@@ -115,6 +115,7 @@ jmp $
 %include "MMU/init.asm"
 %include "MMU/kalloc.asm"
 %include "MMU/mmu_debug_tools.asm"
+%include "MMU/paging.asm"
 %include "graphics_drivers/vga_logger.asm"
 %include "graphics_drivers/vga_serial_driver.asm"
 %include "graphics_drivers/vga_textmode_driver.asm"
