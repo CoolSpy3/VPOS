@@ -52,6 +52,10 @@ feature_check:
     jz .long_mode_error
     .ignore_long_mode:
 
+    test edx, 0x100000
+    jz .xd_error
+    .ignore_xd:
+
     mov eax, 0x1
     cpuid
 
@@ -98,6 +102,7 @@ feature_check:
     featureError cpu_unsupported, {"Error! CPU is unsupported!"}
     featureError valid_leaves, {"Error! CPU does not support all CPUID leaves!"}
     featureError long_mode, {"Error! CPU does not support long mode!"}
+    featureError xd, {"Error! CPU does not support Execute Disable bit!"}
     featureError msr, {"Error! CPU does not support Model Specific Registers!"}
     featureError cmov, {"Error! CPU does not support CMOV instructions!"}
     featureError paging, {"Error! CPU does not support all paging features!"}

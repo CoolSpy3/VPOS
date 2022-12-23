@@ -57,9 +57,9 @@ rm_main: ; Unfortunately we have to execute some real mode code here to read the
 	mov eax, page_table ; Store the address of the page table in CR3
 	mov cr3, eax
 
-	mov ecx, 0xC0000080 ; Enable long mode
+	mov ecx, 0xC0000080 ; Enable long mode and XD (Execute Disable)
 	rdmsr
-	or eax, 0x100
+	or eax, 0x900
 	wrmsr
 
 	mov eax, cr0 ; Enable paging
@@ -112,6 +112,7 @@ jmp $
 %include "disk/ata.asm"
 %include "HAL/idt.asm"
 %include "HAL/pic.asm"
+%include "MMU/init.asm"
 %include "MMU/kalloc.asm"
 %include "MMU/mmu_debug_tools.asm"
 %include "graphics_drivers/vga_logger.asm"

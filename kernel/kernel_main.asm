@@ -11,5 +11,6 @@ kernel_main:
 
     call format_mem_map
     call expand_page_table
+    call setup_kernel_memory
 
     ret

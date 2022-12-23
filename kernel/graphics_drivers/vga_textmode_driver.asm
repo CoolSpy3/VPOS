@@ -45,7 +45,7 @@ vga_textmode_setchar: ;ch: row, cl: col, dx: char_data
     popaq
     ret
 
-vga_textmode_setstring:
+vga_textmode_setstring: ; rbx: string
     pushaq
 
     .loop:
