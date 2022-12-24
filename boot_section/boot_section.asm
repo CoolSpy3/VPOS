@@ -36,7 +36,7 @@ boot_section:
 
     jmp 0x1000  ; Jump to kernel
 
-    jmp $
+jmp $
 
 %include "rm_print.asm"
 %include "disk_load.asm"
