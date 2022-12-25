@@ -6,14 +6,14 @@ nop
 %include "fat32_bpb.asm"
 
 boot_section:
-    xor  ax, ax
-    mov  ds, ax
-    mov  es, ax
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
 
-    mov  ax, 0x07e0 ;sets up stack
+    mov ax, 0x07e0 ;sets up stack
     cli
-    mov  ss, ax
-    mov  sp, 0x1200
+    mov ss, ax
+    mov sp, 0x1200
     sti
 
     kernel_start_sector equ ((kernel_start-$$) / 512) + 1
