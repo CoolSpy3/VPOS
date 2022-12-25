@@ -3,20 +3,39 @@ setup_kernel_memory:
     jnz .limit_exceded
 
     push rax
+    push rbx
+    push rcx
+    push rdx
+
+    mov rax, 0xA0000
+    mov rbx, 0xA0000
+    mov rcx, 0x16 ; Set Page Cache Disable, User/Supervisor, and Read/Write bits
+    mov rdx, 0xC0000-0xA0000 ; 128KB (Video Memory)
+    call map_region
+    jc .map_error
 
     mov rax, [page_table]
     bts rax, 63 ; Set the execute disable bit
 
     mov [page_table+256*8], rax
 
+    pop rdx
+    pop rcx
+    pop rbx
     pop rax
     ret
 
     .limit_exceded:
-    mov rbx, .LIMIT_MSG
-    call panic_with_msg
+        mov rbx, .LIMIT_MSG
+        jmp panic_with_msg
 
-    .LIMIT_MSG: db "Over 512GiB of memory detected! This is not supported!", 0
+    .LIMIT_MSG db "Over 512GiB of memory detected! This is not supported!", 0
+
+    .map_error:
+        mov rbx, .MAP_ERROR_MSG
+        jmp panic_with_msg
+
+    .MAP_ERROR_MSG db "Failed to map memory (This is probrably a code error)!", 0
 
 seq_alloc: ; Returns mem in rax
     push rcx

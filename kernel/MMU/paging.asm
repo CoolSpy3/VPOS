@@ -1,3 +1,59 @@
+map_region: ; rax: start address, rbx: virtual address, rcx: flags, rdx: length, EFLAGS.C: set on error
+    test rax, 4*4096-1
+    jnz .error
+    test rbx, 4*4096-1
+    jnz .error
+    test rdx, 4*4096-1
+    jnz .error
+
+    push rax
+    push rbx
+    push rdx
+    push r8
+    push r9
+
+    lea rdx, [rax+rdx]
+
+    test rax, 2*1024*1024-1
+    jnz .large_pages
+    test rbx, 2*1024*1024-1
+    jnz .large_pages
+    test rdx, 2*1024*1024-1
+    jnz .large_pages
+    jmp .small_pages
+
+    .large_pages:
+    mov r8, 2*1024*1024
+    mov r9, 1
+    jmp .map
+
+    .small_pages:
+    mov r8, 4*4096
+    xor r9, r9
+
+    .map:
+    xchg rdx, r9
+
+    .loop:
+        call map_page
+        add rax, r8
+        add rbx, r8
+        cmp rax, r9
+        jb .loop
+
+    pop r9
+    pop r8
+    pop rdx
+    pop rbx
+    pop rax
+    clc
+    ret
+
+    .error:
+        stc
+        ret
+
+
 map_page: ; rax: linear address, rbx: virtual address, rcx: flags, rdx: 1 for 2 MiB page, 0 for 4 KiB page (other values result in undefined behavior)
     push rcx
     push rdx
