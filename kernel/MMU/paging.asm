@@ -15,12 +15,11 @@ map_region: ; rax: start address, rbx: virtual address, rcx: flags, rdx: length,
     lea rdx, [rax+rdx]
 
     test rax, 2*1024*1024-1
-    jnz .large_pages
+    jnz .small_pages
     test rbx, 2*1024*1024-1
-    jnz .large_pages
+    jnz .small_pages
     test rdx, 2*1024*1024-1
-    jnz .large_pages
-    jmp .small_pages
+    jnz .small_pages
 
     .large_pages:
     mov r8, 2*1024*1024
