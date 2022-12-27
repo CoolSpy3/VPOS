@@ -19,6 +19,10 @@ setup_kernel_memory:
 
     mov [page_table+256*8], rax
 
+    sfence ; Flush the TLB
+    mov rax, cr3 ; Reload the page table
+    mov cr3, rax
+
     pop rdx
     pop rcx
     pop rbx
