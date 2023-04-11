@@ -1,3 +1,5 @@
+%include "kernel/MMU/malloc.asm"
+
 malloc_test:
     mov rax, MEM_START
     mov cl, 0

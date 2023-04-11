@@ -1,3 +1,11 @@
+%ifndef KERNEL_FEATURE_CHECK
+%define KERNEL_FEATURE_CHECK
+
+[bits 16]
+
+%include "common/rm_print.asm"
+%include "kernel/kernel.asm"
+
 feature_check:
     ; CPUID check from https://wiki.osdev.org/Setting_Up_Long_Mode#Detection_of_CPUID
     pushfd ; Store EFLAGS in EAX
@@ -113,3 +121,5 @@ feature_check:
         xor ah, ah
         int 0x16
         ret
+
+%endif

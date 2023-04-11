@@ -1,5 +1,9 @@
+%ifndef KERNEL
+%define KERNEL
+
 [org 0x1000]
 [bits 16]
+
 rm_main: ; Unfortunately we have to execute some real mode code here to read the memory map
 	mov ah, 0
 	int 0x10
@@ -52,7 +56,7 @@ rm_main: ; Unfortunately we have to execute some real mode code here to read the
 	or eax, 0x20
 	mov cr4, eax
 
-%include "MMU/gen_page_table.asm"
+	%include "kernel/MMU/gen_page_table.asm"
 
 	mov eax, page_table ; Store the address of the page table in CR3
 	mov cr3, eax
@@ -93,14 +97,14 @@ MEM_LEN_READ_ERR db "Error retrieving length of extended memory!", 0xA, 0xD, 0
 MEM_HOLE_ERR db "Error! The system is not designed to handle the 15MiB memory hole!", 0xA, 0xD, 0
 IGNORE_INFO db "Press any key to ignore...", 0xA, 0xD, 0
 
-%include "feature_check.asm"
-%include "rm_print.asm"
-%include "MMU/gdt.asm"
-%include "MMU/mem_map.asm"
+%include "kernel/feature_check.asm"
+%include "common/rm_print.asm"
+%include "kernel/MMU/gdt.asm"
+%include "kernel/MMU/mem_map.asm"
 
 [bits 64]
 
-%include "util/stackmacros.asm"
+%include "kernel/util/stackmacros.asm"
 
 main:
     mov rsp, STACK_END
@@ -108,27 +112,17 @@ main:
 
 jmp $
 
-%include "kernel_main.asm"
-%include "disk/ata.asm"
-%include "HAL/idt.asm"
-%include "HAL/pic.asm"
-%include "MMU/init.asm"
-%include "MMU/kalloc.asm"
-%include "MMU/mmu_debug_tools.asm"
-%include "MMU/paging.asm"
-%include "graphics_drivers/vga_logger.asm"
-%include "graphics_drivers/vga_serial_driver.asm"
-%include "graphics_drivers/vga_textmode_driver.asm"
-%include "util/panic.asm"
-%include "util/spinlock.asm"
+%include "kernel/kernel_main.asm"
 
-%include "MMU/stack.asm"
+%include "kernel/MMU/stack.asm"
 
 EXT_MEM_LEN dw 0
 FREE_MEM dq page_table
 
-%include "MMU/padding.asm"
+%include "kernel/MMU/padding.asm"
 
 FS_START equ $
 
 page_table equ 0x100000
+
+%endif

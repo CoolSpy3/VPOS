@@ -2,5 +2,8 @@
     "makefile.alwaysPreConfigure": false,
     "makefile.configureAfterCommand": false,
     "makefile.configureOnEdit": false,
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+    "nasm.extraFlags": [
+        "-dIDE_VALIDATOR"
+    ]
 }

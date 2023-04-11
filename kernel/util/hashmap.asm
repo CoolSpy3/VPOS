@@ -1,3 +1,10 @@
+%ifndef UTIL_HASHMAP
+%define UTIL_HASHMAP
+
+[bits 64]
+
+%include "kernel/MMU/malloc.asm"
+
 hashmap_new: ; rax: returns ptr
     mov rax, HASHMAP_LENGTH
     call malloc
@@ -210,3 +217,5 @@ HASHMAP_ALLOCATED_SIZE_OFFSET equ 4 ; (size + data ptr)
 HASHMAP_DATA_OFFSET equ 4 + 4
 HASHMAP_DEFAULT_SIZE equ 2
 HASHMAP_DEFAULT_DATA_LENGTH equ HASHMAP_DEFAULT_SIZE * 8
+
+%endif

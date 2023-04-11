@@ -1,3 +1,10 @@
+%ifndef UTIL_ARRAYLIST
+%define UTIL_ARRAYLIST
+
+[bits 64]
+
+%include "kernel/MMU/malloc.asm"
+
 arraylist_new: ; rax: returns ptr
     mov rax, ARRAYLIST_LENGTH
     call malloc
@@ -163,3 +170,5 @@ ARRAYLIST_ALLOCATED_SIZE_OFFSET equ 4 ; (size + data ptr)
 ARRAYLIST_DATA_OFFSET equ 4 + 4
 ARRAYLIST_DEFAULT_SIZE equ 2
 ARRAYLIST_DEFAULT_DATA_LENGTH equ ARRAYLIST_DEFAULT_SIZE * 4
+
+%endif

@@ -1,3 +1,10 @@
+%ifndef KERNEL_HAL_IDT
+%define KERNEL_HAL_IDT
+
+[bits 64]
+
+%include "kernel/util/stackmacros.asm"
+
 idt_install:
 
     lidt [idt_ptr]
@@ -44,3 +51,5 @@ idt_ptr:
 
 idt_structure:
     times 512 dd 0x00
+
+%endif

@@ -1,3 +1,10 @@
+%ifndef KERNEL_VGA_TEXTMODE_DRIVER
+%define KERNEL_VGA_TEXTMODE_DRIVER
+
+[bits 64]
+
+%include "kernel/util/stackmacros.asm"
+
 clear_textmode_buffer:
     pushaq
 
@@ -132,3 +139,5 @@ vga_textmode_showalascharandhang:
 hex_string:
     db '0x'
     times 8*2+1 db 0
+
+%endif

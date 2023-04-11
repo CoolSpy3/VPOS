@@ -1,9 +1,14 @@
+%ifndef BOOT_SECTION
+%define BOOT_SECTION
+
+%include "boot_section/sector_sizes.asm"
+
 [org 0x7c00]
 [bits 16]
 jmp short boot_section
 nop
 
-%include "fat32_bpb.asm"
+%include "fat/fat32_bpb.asm"
 
 boot_section:
     xor ax, ax
@@ -15,9 +20,6 @@ boot_section:
     mov ss, ax
     mov sp, 0x1200
     sti
-
-    kernel_start_sector equ ((kernel_start-$$) / 512) + 1
-    required_sectors equ kernel_size
 
     mov [boot_disk], dl
     mov bx, 0x1000
@@ -38,8 +40,8 @@ boot_section:
 
 jmp $
 
-%include "rm_print.asm"
-%include "disk_load.asm"
+%include "common/rm_print.asm"
+%include "boot_section/disk_load.asm"
 
 ss1_boot_msg db 'Booted into ss1', 0x0D, 0x0A, 0
 boot_disk db 0
@@ -47,6 +49,8 @@ boot_disk db 0
 times 510-($-$$) db 0
 dw 0xaa55
 
-%include "fat32_fsinfo.asm"
+%include "fat/fat32_fsinfo.asm"
 
 kernel_start equ $
+
+%endif

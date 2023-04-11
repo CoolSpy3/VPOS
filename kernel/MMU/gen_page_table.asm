@@ -1,3 +1,10 @@
+%ifndef KERNEL_MMU_GEN_PAGE_TABLE
+%define KERNEL_MMU_GEN_PAGE_TABLE
+
+%include "kernel/kernel.asm"
+
+[bits 16]
+
 gen_page_table: ; This must be run from protected mode to access higher memory
     mov edx, page_table+4096
     mov edi, page_table
@@ -80,3 +87,5 @@ gen_page_table: ; This must be run from protected mode to access higher memory
         jne .l2loop
 
     mov [FREE_MEM], edi
+
+%endif

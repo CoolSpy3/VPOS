@@ -1,3 +1,13 @@
+%ifndef DISK_LOAD
+%define DISK_LOAD
+[bits 16]
+
+%include "common/rm_print.asm"
+
+%ifdef IDE_VALIDATOR
+    kernel_start_sector equ 2
+%endif
+
 disk_load: ;code taken from stack overflow user sep roland
     mov [sectors], dh
     mov  ch, 0x00
@@ -42,3 +52,5 @@ disk_read_error:
 
 disk_error_msg db 'Disk read error', 0x0D, 0x0A, 0
 sectors db 0
+
+%endif

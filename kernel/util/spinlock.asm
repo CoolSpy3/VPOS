@@ -1,3 +1,10 @@
+%ifndef UTIL_SPINLOCK
+%define UTIL_SPINLOCK
+
+[bits 64]
+
+%include "kernel/MMU/malloc.asm"
+
 pushcli:
     push rax
     cmp [ncli], byte 0

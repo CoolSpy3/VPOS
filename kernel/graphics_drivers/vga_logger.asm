@@ -1,3 +1,10 @@
+%ifndef KERNEL_VGA_LOGGER
+%define KERNEL_VGA_LOGGER
+
+[bits 64]
+
+%include "kernel/graphics_drivers/vga_textmode_driver.asm"
+
 vga_log_space:
     pushfq
     add [vga_log_row], byte 1
@@ -228,3 +235,5 @@ vga_dump_long_mem_at_rdx:
 
 vga_log_row: db 0
 vga_log_col: db 0
+
+%endif

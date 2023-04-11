@@ -1,3 +1,8 @@
+[bits 64]
+
+%include "kernel/util/hashmap.asm"
+%include "kernel/graphics_drivers/vga_textmode_driver.asm"
+
 hash_string_test:
     mov rax, test_string2
     call hash_string

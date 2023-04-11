@@ -1,3 +1,7 @@
+[bits 64]
+
+%include "kernel/util/string.asm"
+
 split_string_test:
     mov rsi, test_split
     mov bl, byte '.'

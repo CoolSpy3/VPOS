@@ -1,3 +1,7 @@
+%ifndef UTIL_STACKMACROS
+%define UTIL_STACKMACROS
+[bits 64]
+
 %macro pushaq 0
 push rax
 push rbx
@@ -15,3 +19,5 @@ pop rcx
 pop rbx
 pop rax
 %endmacro
+
+%endif

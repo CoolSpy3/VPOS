@@ -1,3 +1,15 @@
+%ifndef KERNEL_MMU_MALLOC
+%define KERNEL_MMU_MALLOC
+
+[bits 64]
+
+%include "kernel/kernel.asm"
+
+%ifdef IDE_VALIDATOR
+    MEM_START dq 0
+    MEM_END dq 0
+%endif
+
 malloc: ; rax: size, returns ptr
     add rax, BLOCK_HEADER_LENGTH
     cmp rax, BLOCK_MIN_SIZE
@@ -140,3 +152,5 @@ BLOCK_PREV_LENGTH_OFFSET equ 8
 BLOCK_IN_USE_OFFSET equ 8+8
 
 BLOCK_MIN_SIZE equ BLOCK_HEADER_LENGTH + 4
+
+%endif

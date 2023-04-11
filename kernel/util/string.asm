@@ -1,3 +1,10 @@
+%ifndef UTIL_STRINGUTILS
+%define UTIL_STRINGUTILS
+
+[bits 64]
+
+%include "kernel/MMU/malloc.asm"
+
 str_len: ; Put string addr in rdi, length returned in rax
     push rdi
     push rcx
@@ -143,3 +150,5 @@ trim_string: ; rax: ptr to string, returns ptr to new string
     pop rdi
     pop rsi
     ret
+
+%endif

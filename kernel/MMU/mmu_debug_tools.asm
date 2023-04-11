@@ -1,3 +1,10 @@
+%ifndef KERNEL_MMU_DEBUG_TOOLS
+%define KERNEL_MMU_DEBUG_TOOLS
+
+[bits 64]
+
+%include "kernel/graphics_drivers/vga_logger.asm"
+
 dump_mem_map:
     push rax
     push rcx
@@ -29,3 +36,5 @@ dump_mem_map:
     pop rcx
     pop rax
     ret
+
+%endif

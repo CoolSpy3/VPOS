@@ -1,3 +1,10 @@
+%ifndef KERNEL_MMU_MEM_MAP
+%define KERNEL_MMU_MEM_MAP
+
+[bits 16]
+
+%include "common/rm_print.asm"
+
 ; Based on https://wiki.osdev.org/Detecting_Memory_(x86)#Getting_an_E820_Memory_Map
 load_mem_map:
     push es
@@ -86,3 +93,5 @@ load_mem_map:
 
 SMAP equ 0x0534D4150 ; SMAP signature
 MEM_MAP_ERROR_MSG db "Failed to read memory map!", 0
+
+%endif

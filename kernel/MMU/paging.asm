@@ -1,3 +1,10 @@
+%ifndef KERNEL_MMU_PAGING
+%define KERNEL_MMU_PAGING
+
+[bits 64]
+
+%include "kernel/MMU/kalloc.asm"
+
 map_region: ; rax: start address, rbx: virtual address, rcx: flags, rdx: length, EFLAGS.C: set on error
     test rax, 4*4096-1
     jnz .error
@@ -126,3 +133,5 @@ map_page: ; rax: linear address, rbx: virtual address, rcx: flags, rdx: 1 for 2 
 
     pop rcx
     ret
+
+%endif

@@ -1,3 +1,7 @@
+[bits 64]
+
+%include "kernel/graphics_drivers/vga_serial_driver.asm"
+
 vga_serial_test:
     call VGA_write_regs
     call disable_cursor

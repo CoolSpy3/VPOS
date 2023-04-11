@@ -1,3 +1,10 @@
+%ifndef KERNEL_DISK_ATA
+%define KERNEL_DISK_ATA
+
+[bits 64]
+
+%include "kernel/util/panic.asm"
+
 ; I couldn't find any way to check which drive was used to
 ; load the OS which worked reliably on QEMU and VirtualBox,
 ; so we'll just assume the selected master drive for all functions
@@ -222,3 +229,5 @@ ata_read: ; esi = lba, edi = buffer, ecx = count
 ata_device_type: db 0
 ata_identify_data:
     times 256 dw 0
+
+%endif

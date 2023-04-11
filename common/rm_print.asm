@@ -1,3 +1,7 @@
+%ifndef COMMON_RM_PRINT
+%define COMMON_RM_PRINT
+[bits 16]
+
 rm_print:
 	mov ah, 0x0e
 	mov al, [si]
@@ -83,3 +87,5 @@ rm_print_al_l:
 	int 0x10
 	pop ax
 	ret
+
+%endif

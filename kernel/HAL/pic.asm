@@ -1,8 +1,14 @@
+%ifndef KERNEL_HAL_PIC
+%define KERNEL_HAL_PIC
+
+[bits 64]
+
+%include "kernel/util/stackmacros.asm"
 
 pic_init: ;dl: base0, dh: base1
     pushaq
     mov bl, 0
-    
+
     cli
 
     and bl, ~I86_PIC_ICW1_MASK_INIT
@@ -140,3 +146,5 @@ I86_PIC_ICW4_MASK_UPM equ 0x1
 I86_PIC_ICW4_UPM_86MODE equ 1
 
 I86_PIC_OCW2_MASK_EOI equ 0x20
+
+%endif

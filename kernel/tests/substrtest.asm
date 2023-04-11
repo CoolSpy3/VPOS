@@ -1,3 +1,8 @@
+[bits 64]
+
+%include "kernel/util/string.asm"
+
+
 substrtest:
     mov rsi, test_string
     mov rax, 2

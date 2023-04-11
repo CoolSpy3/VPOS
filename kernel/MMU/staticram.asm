@@ -1,3 +1,8 @@
+%ifndef KERNEL_MMU_STATICRAM
+%define KERNEL_MMU_STATICRAM
+
+%include "kernel/MMU/malloc.asm"
+
 malloc_init:
     mov qword [HEAP_PTR], MEM_START_POS
     ret
@@ -18,3 +23,5 @@ times MEM_LEN_VAL-BLOCK_HEADER_LENGTH db 0x00
 ; End of memory
 MEM_END_POS equ $
 MEM_END dq MEM_END_POS
+
+%endif

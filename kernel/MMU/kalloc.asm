@@ -1,3 +1,10 @@
+%ifndef KERNEL_MMU_KALLOC
+%define KERNEL_MMU_KALLOC
+
+[bits 64]
+
+%include "kernel/kernel.asm"
+
 kalloc: ; Returns mem in rax
     push rcx
     push rdi
@@ -24,3 +31,5 @@ kfree: ; Frees mem in rax
 
     pop rbx
     ret
+
+%endif

@@ -1,9 +1,13 @@
-%if ($-$$) != 0x03
-    %error "FAT32 header is not at the correct offset"
+%ifndef FAT32_BPB
+%define FAT32_BPB
+
+%ifndef IDE_VALIDATOR
+    %if ($-$$) != 0x03
+        %error "FAT32 header is not at the correct offset"
+    %endif
 %endif
 
-reserved_sectors equ (kernel_size+2)
-disk_size equ reserved_sectors+filesystem_size
+%include "boot_section/sector_sizes.asm"
 
 fat32_header:
     db "VPOSVPOS" ; OEM Identifier
@@ -35,6 +39,8 @@ fat32_header:
     db "NO NAME    " ; Volume label
     db "FAT32   " ; File system type
 
-%if ($-$$) != 0x05A
+%if ($-fat32_header) != 0x57
     %error "FAT32 header is not the correct size"
+%endif
+
 %endif

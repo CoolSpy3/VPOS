@@ -1,3 +1,11 @@
+%ifndef KERNEL_MMU_INIT
+%define KERNEL_MMU_INIT
+
+[bits 64]
+
+%include "kernel/kernel.asm"
+%include "kernel/MMU/paging.asm"
+
 setup_kernel_memory:
     test qword [page_table+64], 1
     jnz .limit_exceded
@@ -329,3 +337,5 @@ format_mem_map:
         pop rdi
         pop rbx
         ret
+
+%endif

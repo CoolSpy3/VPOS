@@ -1,3 +1,7 @@
+[bits 64]
+
+%include "kernel/util/arraylist.asm"
+
 arraylist_test:
     call arraylist_new
 
