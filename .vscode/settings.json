@@ -1,0 +1,6 @@
+{
+    "makefile.alwaysPreConfigure": false,
+    "makefile.configureAfterCommand": false,
+    "makefile.configureOnEdit": false,
+    "makefile.configureOnOpen": false
+}

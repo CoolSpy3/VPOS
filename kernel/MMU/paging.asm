@@ -68,17 +68,22 @@ map_page: ; rax: linear address, rbx: virtual address, rcx: flags, rdx: 1 for 2 
 
     mov r8, cr3
 
-    %macro allocateLevel 1 ; param: offset
+    %define PML4E 39
+    %define PDPTE 30
+    %define PDE 21
+    %define PTE 12
+
+    %macro allocate 1 ; param: offset
         mov rax, rbx
         shr rax, %1
         and rax, 511
         lea rsi, [r8+rax*8]
-        %if %1 = 21
+        %if %1 = PML4E
             test rdx, rdx
             jnz .map_page
         %endif
 
-        %if %1 != 12
+        %if %1 != PTE
             mov r8, [rsi]
             btr r8, 63 ; Clear the execute disable bit
             test r8, 1
@@ -97,12 +102,17 @@ map_page: ; rax: linear address, rbx: virtual address, rcx: flags, rdx: 1 for 2 
         %endif
     %endmacro
 
-    allocateLevel 39 ; Allocate PML4E (PDPT)
-    allocateLevel 30 ; Allocate PDPTE (PD)
-    allocateLevel 21 ; Allocate PDE (PT)
-    allocateLevel 12 ; Get PTE Address
+    allocate {PML4E} ; Allocate PML4E (PDPT)
+    allocate {PDPTE} ; Allocate PDPTE (PD)
+    allocate {PDE} ; Allocate PDE (PT)
+    allocate {PTE} ; Get PTE Address
 
-    %unmacro allocateLevel 1
+    %unmacro allocate 1
+
+    %undef PML4E
+    %undef PDPTE
+    %undef PDE
+    %undef PTE
 
     .map_page:
     pop rax

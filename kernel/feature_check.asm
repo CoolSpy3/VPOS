@@ -87,12 +87,7 @@ feature_check:
     %macro featureError 2
         .%1_error:
             mov si, .%1_error_msg
-            call rm_print
-            call rm_dump_regs
-            mov si, IGNORE_INFO
-            call rm_print
-            xor ah, ah
-            int 0x16
+            call handle_error
             jmp .ignore_%1
 
         .%1_error_msg db %2, 0xA, 0xD, 0
@@ -109,3 +104,12 @@ feature_check:
     featureError apic, {"Error! CPU does not support APIC!"}
 
     %unmacro featureError 2
+
+    handle_error:
+        call rm_print
+        call rm_dump_regs
+        mov si, IGNORE_INFO
+        call rm_print
+        xor ah, ah
+        int 0x16
+        ret

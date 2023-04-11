@@ -1,6 +1,5 @@
 *.bin
 *.mem
-.vscode
 bin
 log.txt
 __pycache__
