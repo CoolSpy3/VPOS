@@ -8,10 +8,6 @@ endif
 
 -include bin/filesystem.d
 
-bin/as_kernel.asm: arsenic/kernel_entry.as
-	mkdir -p $(@D)
-	$(ARSENIC_EXE) -I arsenic -M bin/as_kernel.d -P -T bin/as_kernel.asm -o bin/as_kernel.asm arsenic/kernel_entry.as
-
 bin/boot_section.bin: boot_section/boot_section.asm bin/kernel.bin bin/kernel.size bin/filesystem.size bin/filesystem.bin.fatSize
 	mkdir -p $(@D)
 	nasm boot_section/boot_section.asm -f bin -o bin/boot_section.bin -MD bin/boot_section.d -MP -werror \
