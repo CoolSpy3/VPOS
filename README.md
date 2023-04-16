@@ -42,7 +42,7 @@ At the moment, the process for booting the OS is as follows:
 ## Feature Checks
 1. Check that the CPU supports [`cpuid`](https://wiki.osdev.org/CPUID) by [changing the CPUID bit](https://wiki.osdev.org/CPUID#Checking_CPUID_availability) in [`EFLAGS`](https://wiki.osdev.org/EFLAGS#EFLAGS_Register)
 2. Check that the CPU's vendor id matches "`AuthenticAMD`" or "`GenuineIntel`" (`eax = 0x00` should return valid values in `ebx` `edx` and `ecx`)
-3. Check that the `cpuid` instruction supports all of the `leaves` required to check the remaining features (`eax = 0x00` should return `eax >= 0x80000008`)
+3. Check that the `cpuid` instruction supports all of the `leaves` required to check the remaining features (`eax = 0x00` should return `eax >= 0x01`, and `eax=0x80000000` should return `eax >= 0x80000001`)
 4. Check that long mode is supported (`eax = 0x80000001` should return `edx & 0x20000000 = 0x20000000`)
 5. Check that model specific registers are supported (`eax = 0x1` should return `edx & 0x00000020 = 0x00000020`)
 6. Check that all required paging features are supported (PSE, PAE, PAT, and PSE36) (`eax = 0x1` should return `edx & 0x00030048 = 0x00030048`)
