@@ -19,8 +19,15 @@ kernel_main:
     call dump_mem_map
 
     call format_mem_map
+
+    call vga_log_reset
+    call dump_formatted_mem_map
+
     call expand_page_table
     call setup_kernel_memory
+
+    ; TODO: SETUP PIC
+    ; sti ; Enable interrupts
 
     ret
 

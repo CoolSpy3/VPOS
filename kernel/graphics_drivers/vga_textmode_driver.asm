@@ -3,30 +3,26 @@
 
 [bits 64]
 
+%include "common/system_constants.asm"
 %include "kernel/util/stackmacros.asm"
 
 clear_textmode_buffer:
-    pushaq
+    push ax
+    push rcx
+    push rdi
 
-    mov cl, 0 ; cols
-    mov ch, 0 ; rows
+    mov rcx, SCREEN_NUM_COLS * SCREEN_NUM_ROWS
 
-    .loop:
+    mov al, byte ' ' ; Fill with spaces
+    mov ah, 0x0
 
-        mov dl, byte ' '
-        mov dh, 0x0
-        call vga_textmode_setchar
+    mov rdi, VRAM_TEXT_START
 
-        inc cl
-        cmp cl, 80
-        jl .loop
-        mov cl, 0
+    rep stosw
 
-        inc ch
-        cmp ch, 25
-        jl .loop
-
-    popaq
+    pop rdi
+    pop rcx
+    pop ax
     ret
 
 
@@ -34,8 +30,8 @@ vga_textmode_setchar: ;ch: row, cl: col, dx: char_data
     pushaq
     mov rax, 0
     mov rsi, 0
-    mov rbx, 0xb8000
-    mov al, 160
+    mov rbx, VRAM_TEXT_START
+    mov al, SCREEN_NUM_COLS * 2 ; Each character is 2 bytes
     mul ch
     mov si, ax ;si = 160 * ch(row)
 
@@ -52,28 +48,28 @@ vga_textmode_setchar: ;ch: row, cl: col, dx: char_data
     popaq
     ret
 
-vga_textmode_setstring: ; rbx: string
+vga_textmode_setstring: ; rbx: string, ch: row, cl: col, dx: char_data
     pushaq
 
     .loop:
-        mov dl, byte [rbx]
+        mov dl, byte [rbx] ; Get the next character in the string
 
-        call vga_textmode_setchar
+        call vga_textmode_setchar ; Print the character
 
-        inc rbx
+        inc rbx ; Move to the next character in the string
 
-        inc cl
-        cmp cl, 80
+        inc cl ; Move to the next column
+        cmp cl, SCREEN_NUM_COLS
         jl .again
-        mov cl, 0
+        mov cl, 0 ; If we're at the end of the line, go to the next line
 
-        ; inc ch     ; This bit of code breaks the char placement for some reason, 
-        ; cmp ch, 25 ; program(with this code segment uncommented) output: test{club_symbol}
-        ; jl .loop_end
+        inc ch ; This code was (maybe) being buggy before. I uncommented it, and it appears to work now, so ima assume the previous comment was wrong
+        cmp ch, SCREEN_NUM_ROWS
+        jl .end ; If we're at the end of the screen, stop
 
         .again:
 
-        cmp [rbx], byte 0
+        cmp [rbx], byte 0 ; If we're not at the end of the string, go back to the top of the loop
         jne .loop
 
     .end:
@@ -86,40 +82,35 @@ vga_textmode_showhex: ; rax: val, cl: x, ch: y, dl: color
 
     push rcx
 
-    mov rcx, 2*8+1
+    mov rcx, 2*8+2-1 ; 2 chars per byte, 8 bytes, '0x', subtract 1 to target the last character
 
     .loop:
-    call .readChar
-    shr rax, 4
+    call .readChar ; Put the lower 4 bits of rax into hex_string[rcx]
+    shr rax, 4 ; Shift rax right 4 bits and shift rcx to the next character
     sub rcx, 1
 
-    cmp rcx, 2
+    cmp rcx, 2 ; If we're at the beginning of the string, stop
     jae .loop
 
     pop rcx
 
-    mov rbx, hex_string
+    mov rbx, hex_string ; Print hex_string
     call vga_textmode_setstring
 
     popaq
     ret
 
-    .readChar:
-    push ax
-    and al, 0xF
-
-    cmp al, 0xA
-    jae .readChar2
-    add al, '0'
-    jmp .readChar_put
-
-    .readChar2:
-    add al, 'A'-0xA
-
-    .readChar_put:
-    mov [hex_string+rcx], al
-    pop ax
-    ret
+    .readChar: ; al: val, rcx: offset into hex_string
+        push ax
+        and al, 0xF ; Get the lower 4 bits of al
+        add al, '0' ; Convert to ASCII
+        cmp al, 0xA+'0' ; If al is greater than 0xA, we need to convert it to a letter
+        jb .readChar_put
+        add al, 'A'-'0'-0xA ; Convert to ASCII letter
+        .readChar_put:
+        mov [hex_string+rcx], al ; Put the character into hex_string
+        pop ax
+        ret
 
 vga_textmode_showraxandhang:
     mov cl, 0

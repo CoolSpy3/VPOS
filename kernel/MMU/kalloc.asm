@@ -6,7 +6,9 @@
 %include "kernel/kernel.asm"
 
 kalloc: ; Returns mem in rax
-    push rcx
+    push rcx ; TODO: This is currently the same as seq_alloc
+             ; After free memory is located, it should be updated to read from FREE_MEM as a linked list,
+             ; deferring to seq_alloc otherwise, and printing an error if there is no free memory.
     push rdi
 
     xor rax, rax
@@ -25,9 +27,9 @@ kalloc: ; Returns mem in rax
 kfree: ; Frees mem in rax
     push rbx
 
-    mov rbx, [FREE_MEM]
-    mov [rax], rbx
-    mov [FREE_MEM], rax
+    mov rbx, [FREE_MEM] ; rbx = Current free mem head pointer
+    mov [rax], rbx ; Set the next pointer to the current head
+    mov [FREE_MEM], rax ; Set the head to the new block
 
     pop rbx
     ret

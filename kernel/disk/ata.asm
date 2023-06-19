@@ -3,7 +3,21 @@
 
 [bits 64]
 
+%include "common/system_constants.asm"
 %include "kernel/util/panic.asm"
+
+%define ATA_SELECTED_DRIVE ATA_MASTER_DRIVE
+
+%define ATA_DRIVE_TYPE_ATA 0x1
+%define ATA_DRIVE_TYPE_ATAPI 0x2
+%define ATA_DRIVE_TYPE_SATA 0x3
+%define ATA_DRIVE_TYPE_SATAPI 0x4
+
+%if ATA_SELECTED_DRIVE == ATA_MASTER_DRIVE ; Calculate the value that should be written to the drive select port
+    %define ATA_IO_PORT_DRIVE_SELECT_VALUE ATA_DRIVE_SELECT_LBA
+%else
+    %define ATA_IO_PORT_DRIVE_SELECT_VALUE ATA_DRIVE_SELECT_LBA | ATA_DRIVE_SELECT_DRV
+%endif
 
 ; I couldn't find any way to check which drive was used to
 ; load the OS which worked reliably on QEMU and VirtualBox,
@@ -15,20 +29,20 @@ ata_identify:
     push rdi
 
     ; Execute IDENTIFY command
-    mov al, 0xA0
-    mov dx, 0x1F6
+    mov al, ATA_SELECTED_DRIVE
+    mov dx, ATA_IO_PORT_DRIVE_SELECT
     out dx, al
     xor al, al
-    mov dx, 0x1F2
+    mov dx, ATA_IO_PORT_SECTOR_COUNT
     out dx, al
-    mov dx, 0x1F3
+    mov dx, ATA_IO_PORT_LBA_LOW
     out dx, al
-    mov dx, 0x1F4
+    mov dx, ATA_IO_PORT_LBA_MID
     out dx, al
-    mov dx, 0x1F5
+    mov dx, ATA_IO_PORT_LBA_HIGH
     out dx, al
-    mov al, 0xE
-    mov dx, 0x1F7
+    mov al, ATA_COMMAND_IDENTIFY
+    mov dx, ATA_IO_PORT_COMMAND
     out dx, al
     in al, dx
 
@@ -36,42 +50,43 @@ ata_identify:
     jz .error ; Drive does not exist
 
     ; Wait for drive to be ready
+    mov dx, ATA_IO_PORT_STATUS
     .wait:
         in al, dx
-        test al, 0x80
+        test al, ATA_STATUS_BSY
         jnz .wait
 
-    mov dx, 0x1F4
+    mov dx, ATA_IO_PORT_LBA_MID
     in al, dx
     cmp al, 0
     jnz .error ; Drive is not ATA
-    mov dx, 0x1F5
+    mov dx, ATA_IO_PORT_LBA_HIGH
     in al, dx
     cmp al, 0
     jnz .error ; Drive is not ATA
 
-    mov dx, 0x1F7
+    mov dx, ATA_IO_PORT_STATUS
     .wait2:
         in al, dx
-        test al, 0x8 | 0x1
+        test al, ATA_STATUS_DRQ | ATA_STATUS_ERR
         jz .wait2
 
-    test al, 0x1
+    test al, ATA_STATUS_ERR
     jz .read_data
 
     ; Drive returned error (some devices are supposed to do this)
-    mov dx, 0x1F1
+    mov dx, ATA_IO_PORT_ERROR
     in al, dx
-    cmp al, 0x4
+    cmp al, ATA_ERROR_ABRT
     jne .error ; Drive did not abort command (This shouldn't happen)
 
-    %macro check_device_type 3
+    %macro check_device_type 3 ; %1 = expected LBA_MID, %2 = expected LBA_HIGH, %3 = device type
 
-        mov dx, 0x1F4
+        mov dx, ATA_IO_PORT_LBA_MID
         in al, dx
         cmp al, %1
         jne %%not_this_device
-        mov dx, 0x1F5
+        mov dx, ATA_IO_PORT_LBA_HIGH
         in al, dx
         cmp al, %2
         jne %%not_this_device
@@ -83,11 +98,10 @@ ata_identify:
 
     %endmacro
 
-    check_device_type 0x00, 0x00, 0x1 ; ATA
-    check_device_type 0x14, 0xEB, 0x2 ; ATAPI
-    check_device_type 0x3C, 0xC3, 0x3 ; SATA
-    check_device_type 0x69, 0x96, 0x3 ; SATA
-    check_device_type 0xCE, 0xAA, 0x4 ; Unknown
+    check_device_type    ATA_DRIVE_LBA_MID_SIGNATURE,    ATA_DRIVE_LBA_HIGH_SIGNATURE, ATA_DRIVE_TYPE_ATA
+    check_device_type  ATAPI_DRIVE_LBA_MID_SIGNATURE,  ATAPI_DRIVE_LBA_HIGH_SIGNATURE, ATA_DRIVE_TYPE_ATAPI
+    check_device_type   SATA_DRIVE_LBA_MID_SIGNATURE,   SATA_DRIVE_LBA_HIGH_SIGNATURE, ATA_DRIVE_TYPE_SATA
+    check_device_type SATAPI_DRIVE_LBA_MID_SIGNATURE, SATAPI_DRIVE_LBA_HIGH_SIGNATURE, ATA_DRIVE_TYPE_SATAPI
 
     jmp .error ; Drive is not one of the valid drive types
 
@@ -98,10 +112,10 @@ ata_identify:
     .read_data:
 
     ; Read IDENTIFY data
-    mov rcx, 256
+    mov rcx, ATA_IDENTIFY_DATA_LENGTH / 2 ; Bytes to words
     mov rdi, ata_identify_data
 
-    mov dx, 0x1F0
+    mov dx, ATA_IO_PORT_DATA
     rep insw
 
     pop rdi
@@ -124,71 +138,88 @@ ata_read: ; esi = lba, edi = buffer, ecx = count
     push rsi
     push rdi
 
-    ; Enable LBA mode
-    mov dx, 0x1F6
-    in al, dx
-    or al, 0x40
-    out dx, al
+    ; TODO: Split into multiple calls if trying to read too many sectors at once
 
-    test [ata_identify_data+(2*83)], word 0x400 ; Check if LBA48 is supported
+    ; Check if supported features info is valid
+    test [ata_identify_data+ATA_IDENTIFY_SUPPORTED_FEATURES_OFFSET], word ATA_IDENTIFY_SUPPORTED_FEATURES_VALID_BIT_1
+    jz .lba28 ; If not, assume LBA28
+    test [ata_identify_data+ATA_IDENTIFY_SUPPORTED_FEATURES_OFFSET], word ATA_IDENTIFY_SUPPORTED_FEATURES_VALID_BIT_2
+    jnz .lba28
+
+    test [ata_identify_data+ATA_IDENTIFY_SUPPORTED_FEATURES_OFFSET], word ATA_IDENTIFY_LBA_BIT ; Check if LBA48 is supported
     jnz .lba48
 
     .lba28:
         mov rax, rsi ; Send drive select and high bits of LBA
         shr rax, 24
         and rax, 0xF
-        or al, 0xE0
-        mov dx, 0x1F6
+        or al, ATA_IO_PORT_DRIVE_SELECT_VALUE
+        mov dx, ATA_IO_PORT_DRIVE_SELECT
         out dx, al
 
         mov rax, rcx ; Send sector count
-        mov dx, 0x1F2
+        mov dx, ATA_IO_PORT_SECTOR_COUNT
         out dx, al
 
-        mov rax, rsi ; Send low bits of LBA
-        mov dx, 0x1F3
+        mov rax, rsi ; Send LBA
+        mov dx, ATA_IO_PORT_LBA_LOW
         out dx, al
         shr rax, 8
-        mov dx, 0x1F4
+        mov dx, ATA_IO_PORT_LBA_MID
         out dx, al
         shr rax, 8
-        mov dx, 0x1F5
+        mov dx, ATA_IO_PORT_LBA_HIGH
         out dx, al
 
-        mov al, 0x20 ; Send READ SECTORS command
-        mov dx, 0x1F7
+        mov al, ATA_COMMAND_READ_SECTORS ; Send READ SECTORS command
+        mov dx, ATA_IO_PORT_COMMAND
         out dx, al
 
         jmp .wait_and_read
 
-
     .lba48:
-        mov al, 0x40 ; Select drive
-        mov dx, 0x1F6
+        mov al, ATA_IO_PORT_DRIVE_SELECT_VALUE ; Select drive
+        mov dx, ATA_IO_PORT_DRIVE_SELECT
         out dx, al
 
-        mov rax, rcx ; Send sector count
-        mov dx, 0x1F2
-        out dx, ax
+        mov rax, rcx ; Send sector count high bits
+        shr rax, 8
+        mov dx, ATA_IO_PORT_SECTOR_COUNT
+        out dx, al
 
-        mov rax, rsi ; Send LBA
-        mov dx, 0x1F3
-        out dx, ax
-        shr rax, 16
-        mov dx, 0x1F4
-        out dx, ax
-        shr rax, 16
-        mov dx, 0x1F5
-        out dx, ax
+        mov rax, rsi ; Send LBA high bits
+        shr rax, 24
+        mov dx, ATA_IO_PORT_LBA_LOW
+        out dx, al
+        shr rax, 8
+        mov dx, ATA_IO_PORT_LBA_MID
+        out dx, al
+        shr rax, 8
+        mov dx, ATA_IO_PORT_LBA_HIGH
+        out dx, al
 
-        mov al, 0x24 ; Send READ SECTORS EXT command
-        mov dx, 0x1F7
+        mov rax, rcx ; Send sector count low bits
+        mov dx, ATA_IO_PORT_SECTOR_COUNT
+        out dx, al
+
+        mov rax, rsi ; Send LBA low bits
+        mov dx, ATA_IO_PORT_LBA_LOW
+        out dx, al
+        shr rax, 8
+        mov dx, ATA_IO_PORT_LBA_MID
+        out dx, al
+        shr rax, 8
+        mov dx, ATA_IO_PORT_LBA_HIGH
+        out dx, al
+
+        mov al, ATA_COMMAND_READ_SECTORS_EXT ; Send READ SECTORS EXT command
+        mov dx, ATA_IO_PORT_COMMAND
         out dx, al
 
     .wait_and_read:
         mov rbx, rcx
         .loop:
-            mov dx, 0x1F7
+            ; mov dx, ATA_IO_PORT_STATUS ; The last value in dx is always the command port which is the same as the status port
 
             in al, dx ; Wait for drive to be ready (400 ns delay)
             in al, dx
@@ -197,16 +228,16 @@ ata_read: ; esi = lba, edi = buffer, ecx = count
 
             .wait:
                 in al, dx
-                test al, 0x1
-                jz .error
-                test al, 0x80
+                test al, ATA_STATUS_ERR | ATA_STATUS_DF
+                jnz .error
+                test al, ATA_STATUS_BSY
                 jnz .wait
-                test al, 0x8
+                test al, ATA_STATUS_DRQ
                 jz .wait
 
-            mov dx, 0x1F0
+            mov dx, ATA_IO_PORT_DATA
 
-            mov rcx, 256
+            mov rcx, SECTOR_LENGTH / 2 ; Bytes to words
             rep insw
 
             dec rbx
@@ -228,6 +259,6 @@ ata_read: ; esi = lba, edi = buffer, ecx = count
 
 ata_device_type: db 0
 ata_identify_data:
-    times 256 dw 0
+    times ATA_IDENTIFY_DATA_LENGTH / 2 dw 0
 
 %endif

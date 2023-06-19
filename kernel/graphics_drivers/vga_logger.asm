@@ -3,12 +3,18 @@
 
 [bits 64]
 
+%include "common/system_constants.asm"
 %include "kernel/graphics_drivers/vga_textmode_driver.asm"
+
+%define VGA_LOG_COL_SPACING 4+16
+%define VGA_LOG_COL_MAX SCREEN_NUM_COLS-16
+%define VGA_LOG_DUMP_NUM_ENTRIES 20
+%define VGA_LOG_COLOR 0x5
 
 vga_log_space:
     pushfq
-    add [vga_log_row], byte 1
-    cmp [vga_log_row], byte 25
+    inc byte [vga_log_row]
+    cmp [vga_log_row], byte SCREEN_NUM_ROWS
     jae vga_log_newline.with_flags
     popfq
     ret
@@ -16,9 +22,9 @@ vga_log_space:
 vga_log_newline:
     pushfq
     .with_flags:
-    add [vga_log_col], byte 4+16
+    add [vga_log_col], byte VGA_LOG_COL_SPACING
     mov [vga_log_row], byte 0
-    cmp [vga_log_col], byte 80-16
+    cmp [vga_log_col], byte VGA_LOG_COL_MAX
     jae vga_log_reset.with_flags
     popfq
     ret
@@ -37,7 +43,7 @@ vga_log_rax:
     pushfq
     mov cl, [vga_log_col]
     mov ch, [vga_log_row]
-    mov dh, 0x5
+    mov dh, VGA_LOG_COLOR
     call vga_textmode_showhex
     call vga_log_space
     popfq
@@ -164,7 +170,7 @@ vga_dump_mem_at_rax:
         call vga_log_byte_at_rax
         inc rax
         inc rcx
-        cmp rcx, 20
+        cmp rcx, VGA_LOG_DUMP_NUM_ENTRIES
         jb .loop
 
     popfq
@@ -203,7 +209,7 @@ vga_dump_long_mem_at_rax:
         call vga_log_qword_at_rax
         add rax, 8
         inc rcx
-        cmp rcx, 20
+        cmp rcx, VGA_LOG_DUMP_NUM_ENTRIES
         jb .loop
 
     popfq

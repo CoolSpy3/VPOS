@@ -1,17 +1,23 @@
 %ifndef KERNEL_FEATURE_CHECK
 %define KERNEL_FEATURE_CHECK
 
-[bits 16]
-
 %include "common/rm_print.asm"
 %include "kernel/kernel.asm"
 
+[bits 16]
+
+%include "common/system_constants.asm"
+
+%define MAX_REQUIRED_BASIC_CPUID_LEAF FEATURE_INFO_CPUID_LEAF
+%define MAX_REQUIRED_EXTENDED_CPUID_LEAF EXTENDED_FEATURE_INFO_CPUID_LEAF
+
 feature_check:
+    ; Check if CPUID is supported
     ; CPUID check from https://wiki.osdev.org/Setting_Up_Long_Mode#Detection_of_CPUID
     pushfd ; Store EFLAGS in EAX
     pop eax
     mov ecx, eax ; Copy EFLAGS to ECX
-    xor eax, 0x00200000 ; SET bit 21 (ID bit)
+    xor eax, EFLAGS_ID_BIT ; SET bit 21 (ID bit)
     push eax
     popfd ; Load EFLAGS with new value
     pushfd
@@ -23,70 +29,69 @@ feature_check:
 
     .ignore_cpuid:
 
-    mov eax, 0
+    mov eax, BASIC_CPUID_LEAF
     cpuid
 
-    cmp ebx, "Genu"
-    jne .not_intel
-    cmp edx, "ineI"
-    jne .not_intel
-    cmp ecx, "ntel"
-    jne .not_intel
-    jmp .ignore_cpu_unsupported
+    %macro supportCPU 3
+        cmp ebx, %1
+        jne %%not_this_cpu
+        cmp edx, %2
+        jne %%not_this_cpu
+        cmp ecx, %3
+        jne %%not_this_cpu
+        jmp .ignore_cpu_unsupported ; The CPU is supported, but this label is used to skip the remaining checks. The name is used to match the macro convention.
+        %%not_this_cpu:
+    %endmacro
 
-    .not_intel:
-    cmp ebx, "Auth"
-    jne .cpu_unsupported_error
-    cmp edx, "enti"
-    jne .cpu_unsupported_error
-    cmp ecx, "cAMD"
-    jne .cpu_unsupported_error
+    supportCPU {"Genu"}, {"ineI"}, {"ntel"} ; Check if CPU is Intel
+    supportCPU {"Auth"}, {"enti"}, {"cAMD"} ; Check if CPU is AMD
 
+    jmp .cpu_unsupported_error ; CPU is not supported
     .ignore_cpu_unsupported:
 
-    cmp eax, 0x01
+    %unmacro supportCPU 3
+
+    cmp eax, MAX_REQUIRED_BASIC_CPUID_LEAF
     jb .valid_leaves_error
 
-    mov eax, 0x80000000
+    mov eax, EXTENDED_INFO_CPUID_LEAF
     cpuid
-    cmp eax, 0x80000008
+    cmp eax, MAX_REQUIRED_EXTENDED_CPUID_LEAF
     jb .valid_leaves_error
     .ignore_valid_leaves:
 
 
-    mov eax, 0x80000001
+    mov eax, EXTENDED_FEATURE_INFO_CPUID_LEAF
     cpuid
-    test edx, 0x20000000
+    test edx, HAS_LONG_MODE
     jz .long_mode_error
     .ignore_long_mode:
 
-    test edx, 0x100000
+    test edx, HAS_EXECUTE_DISABLE
     jz .xd_error
     .ignore_xd:
 
-    mov eax, 0x1
+    mov eax, FEATURE_INFO_CPUID_LEAF
     cpuid
 
-    test edx, 0x00000020
+    test edx, MSR_SUPPORT_BIT ; Check if CPU supports MSRs
     jz .msr_error
     .ignore_msr:
 
-    test edx, 0x00008000
+    test edx, CMOV_SUPPORT_BIT ; Check if CPU supports CMOV instructions
     jz .cmov_error
     .ignore_cmov:
 
-    test edx, 0x00000008 ; PSE
-    jz .paging_error
-    test edx, 0x00000040 ; PAE
-    jz .paging_error
-    test edx, 0x00008000 ; PAT
-    jz .paging_error
-    test edx, 0x00010000 ; PSE36
+    push edx
+    and edx, PSE_SUPPORT_BIT | PAE_SUPPORT_BIT | PAT_SUPPORT_BIT | PSE36_SUPPORT_BIT
+    cmp edx, PSE_SUPPORT_BIT | PAE_SUPPORT_BIT | PAT_SUPPORT_BIT | PSE36_SUPPORT_BIT
+    pop edx
+    jne .paging_error
     .ignore_paging:
 
-    test edx, 0x0000200
+    test edx, APIC_SUPPORT_BIT
     jz .apic_error
-    ; test ecx, 0x00200000 ; x2APIC
+    ; test ecx, X2APIC_SUPPORT_BIT ; x2APIC
     ; jz .apic_not_supported_error
     .ignore_apic:
 
@@ -98,7 +103,7 @@ feature_check:
             call handle_error
             jmp .ignore_%1
 
-        .%1_error_msg db %2, 0xA, 0xD, 0
+        .%1_error_msg db %2, `\n\r`, 0
     %endmacro
 
     featureError cpuid, {"Error! CPU does not support CPUID!"}
@@ -114,12 +119,14 @@ feature_check:
     %unmacro featureError 2
 
     handle_error:
+        sti ; Enable interrupts to read keyboard
+        call rm_print ; Print error message
+        call rm_dump_regs ; Dump registers
+        mov si, IGNORE_INFO ; Print ignore info message
         call rm_print
-        call rm_dump_regs
-        mov si, IGNORE_INFO
-        call rm_print
-        xor ah, ah
+        xor ah, ah ; Wait for keypress
         int 0x16
-        ret
+        cli ; Re-disable interrupts
+        ret ; Return to feature_check
 
 %endif

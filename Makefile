@@ -1,12 +1,12 @@
 ifeq ($(OS),Windows_NT)
--include bin/boot_section.bin.d
+-include bin/boot_section.d
 -include bin/kernel.d
 PYTHON = python
 else
 PYTHON = python3
 endif
 
--include bin/filesystem.d
+-include bin/filesystem.bin.d
 
 bin/boot_section.bin: boot_section/boot_section.asm bin/kernel.bin bin/kernel.size bin/filesystem.size bin/filesystem.bin.fatSize
 	mkdir -p $(@D)
@@ -34,9 +34,9 @@ bin/filesystem.bin bin/filesystem.size bin/filesystem.bin.fatSize: filesystem/bu
 	cat bin/filesystem.size.tmp > bin/filesystem.size
 	rm bin/filesystem.size.tmp
 
-bin/disk.vdi: bin/live-image
+bin/disk.vdi: bin/live-image.bin
 	rm -f bin/disk.vdi
-	VBoxManage convertfromraw bin/live-image bin/disk.vdi --format VMDK --uuid=a39e995d-b264-448c-b706-55884f79253c
+	VBoxManage convertfromraw bin/live-image.bin bin/disk.vdi --format VMDK --uuid=a39e995d-b264-448c-b706-55884f79253c
 
 .PHONY: build rebuild clean run debug disk run-vbox
 
