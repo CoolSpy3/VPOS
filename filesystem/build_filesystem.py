@@ -9,10 +9,10 @@ sectorsPerCluster = 1
 
 minClusters = 70000 # Technically 65525, but the documentation stresses that this is easy to get wrong, so use 70000 to be ABSOLUTELY SURE
 
-staticDir = sys.argv[1]   # The directory containing the static files
+staticDir  = sys.argv[1] # The directory containing the static files
 dynamicDir = sys.argv[2] # The directory containing the dynamic files
-relReqDir = sys.argv[3]   # The directory which requirements are referenced to
-outfile = sys.argv[4]     # The file to write the filesystem to
+relReqDir  = sys.argv[3] # The directory which requirements are referenced to
+outfile    = sys.argv[4] # The file to write the filesystem to
 
 if path.exists(outfile):
     os.remove(outfile)
@@ -102,7 +102,7 @@ with open(outfile, 'wb+') as oStream:
 
     clusteredFiles = recursivelyClusterFiles(sizedFiles)
 
-    requiredPaddingClusters = minClusters - currentCluster - 1 # -1 because currentCluster is always the NEXT cluster to be allocated
+    requiredPaddingClusters = minClusters - (currentCluster - 1) # -1 because currentCluster is always the NEXT cluster to be allocated
 
     if requiredPaddingClusters > 0:
         allocateClusters(requiredPaddingClusters, shadow=True)
