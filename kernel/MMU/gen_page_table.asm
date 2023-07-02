@@ -16,10 +16,8 @@ gen_page_table: ; This must be run from protected mode to access higher memory
     ; We will use esi as a backup variable so we can avoid the stack
 
     mov esi, ebx
+    add ebx, 511 ; Ensure at least 1 entry is mapped
     shr ebx, 9 ; Convert to number of 512GiB blocks (Number of PML4 entries)
-    mov ecx, 1 ; Ensure at least 1 entry is mapped
-    cmp ebx, 0
-    cmove ebx, ecx
     xor ecx, ecx ; ecx will be used as a counter for the number of entries we have allocated
     or edx, PTE_P | PTE_RW | PTE_US
     .l4loop: ; Allocate <ebx> PML4 entries
