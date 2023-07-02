@@ -70,7 +70,7 @@ map_page: ; rax: linear address, rbx: virtual address, rcx: flags, rdx: 1 for 2 
     push rdx
     shl rdx, 7 ; Set the page size bit if needed
     or rcx, rdx
-    or rcx, 1 ; Set the present bit
+    or rcx, PTE_P ; Set the present bit
     pop rdx
 
     ; rcx now contains the flags
@@ -80,7 +80,7 @@ map_page: ; rax: linear address, rbx: virtual address, rcx: flags, rdx: 1 for 2 
 
     push rax
 
-    mov r8, cr3 ; Get PML4E Address
+    mov r8, cr3 ; Get PML4 Address
 
     %define PML4E 39
     %define PDPTE 30
@@ -88,29 +88,70 @@ map_page: ; rax: linear address, rbx: virtual address, rcx: flags, rdx: 1 for 2 
     %define PTE 12
 
     %macro allocate 1 ; param: offset
-        mov rax, rbx
+        mov rax, rbx ; rax = virtual address
         shr rax, %1
         and rax, 511 ; rax = offset into table
         lea rsi, [r8+rax*8] ; rsi = address of entry
         %if %1 = PDE
             test rdx, rdx ; If allocating a PDE, check to see if we should write a 2 MiB page
-            jnz .map_page ; If so, skip the allocation of a PTE
+            jz %%alloc_PT ; If so, skip the allocation of a PTE
+
+            test qword [rsi], PTE_P ; Check if the entry is present
+            jz .map_page ; If the entry doesn't exist, we can just map the page
+
+            test qword [rsi], PTE_PS ; Check if the entry is a 2 MiB page
+            jnz .map_page ; If so, we can just map the page
+
+            ; The entry points to another page table, we must deallocate it before we can allocate a 2 MiB page
+            mov rax, [rsi] ; rax = address of page table
+            and rax, ~4095 ; rax = address of page table (ignoring flags)
+            btr rax, 63 ; Ignore the execute/disable bit (we only need the address)
+            call kfree ; Deallocate the page table
+
+            jmp .map_page ; Map the page
+
+            %%alloc_PT:
         %endif
 
-        %if %1 != PTE ; If we already have a PTE, we don't need to allocate anything
+        %if %1 != PTE ; If we are allocating a PTE, we don't need to check if the entry is present
             mov r8, [rsi] ; r8 = entry
             btr r8, 63 ; Ignore the execute/disable bit (we only need the address)
-            test r8, 1 ; Check if the entry is present
+            test r8, PTE_P ; Check if the entry is present
             jz %%allocate ; If not, allocate a new page
+
+            %if %1 = PDE
+                test r8, PTE_PS ; Check if the entry is a 2 MiB page
+                jnz %%allocate ; If so, allocate a PT (If we needed a 2 MiB page, we would have set it up above)
+                        ; TODO: In this case, we also need to add entries for all of the 4 KiB pages that make up this region
+            %endif
 
             and r8, ~4095 ; Otherwise, ignore any flags and write the entry
             jmp %%allocated
 
             %%allocate:
             call kalloc ; Allocate a new page table (rax = address)
+
+            push rbx ; Expand the old page directory entry to fill the new table
+            push cx
+            push rsi
+
+            mov rbx, [rsi] ; rbx = old entry
+
+            xor cx, cx ; cx = 0
+            %%expand_entry_loop:
+                mov [rax+rcx*8], rbx ; Write the old entry to the new table
+                add rbx, 4096 ; Increment the address
+                inc cx ; Increment the index
+                cmp cx, 512 ; Check if we have written all of the entries
+                jb %%expand_entry_loop ; If not, continue
+
+            pop rsi
+            pop cx
+            pop rbx
+
             mov [rsi], rax ; Write the address of the new page table to the entry
-            mov r8, rax ; r8 = address of new page table (for the next iteration)
-            or [rsi], byte 7 ; Set present, read/write, and user bits
+            mov r8, rax ; r8 = address of new table (for the next iteration)
+            or [rsi], byte PTE_US | PTE_RW | PTE_P
 
             %%allocated:
         %endif

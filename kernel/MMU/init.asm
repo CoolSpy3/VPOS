@@ -55,7 +55,7 @@ seq_alloc: ; Returns mem in rax
     push rcx
     push rdi
 
-    xor rax, rax ; rax = 0
+    xor rax, rax ; Fill with 0s
     mov rdi, [FREE_MEM] ; rdi = free memory pointer
     mov rcx, 512 ; rcx = number of qwords to allocate
     rep stosq ; 0mem
@@ -74,10 +74,11 @@ expand_page_table:
     push rcx
     push rdx
     push r8
+    clc
 
     movzx rbx, word [mem_map] ; Set rbx to the first entry of the formatted memory map
     shl rbx, MEM_MAP_BUF_SHIFT
-    add rbx, mem_map+2
+    add rbx, mem_map + 4 ; 2 bytes for the count in the original map; 2 bytes for the count in the formatted map
 
     .find_end_addr_loop: ; Move rbx to the last entry in the formatted memory map
         cmp qword [rbx+FORMATTED_MEM_MAP_ENTRY_LEN+FORMATTED_MEM_MAP_ENTRY_END_ADDR_OFFSET], 0 ; Compare to the next entry in the map, so we don't end on the null entry
@@ -94,7 +95,8 @@ expand_page_table:
 
     .expand_loop:
         cmp rax, r8 ; While rax < max addr
-        jb .expand_loop_done
+        jae .expand_loop_done
+        mov rbx, rax ; virtual address = linear address (Identity Map)
         call map_page ; Map 2 MiB of memory
         jc .error ; If there was an error, panic
         add rax, 2*1024*1024
