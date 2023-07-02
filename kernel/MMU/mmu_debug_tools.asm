@@ -33,7 +33,6 @@ dump_formatted_mem_map:
 
     movzx rcx, word [rsi - 2] ; rcx = number of entries
 
-
     call dump_map_entries
 
     pop rsi
@@ -60,6 +59,20 @@ dump_map_entries: ; rsi: first entry, rcx: number of entries (this function modi
         jmp .loop
 
     .done:
+    ret
+
+dump_kalloc_list:
+    push rax
+
+    mov rax, FREE_MEM
+
+    .loop:
+        mov rax, [rax]
+        call vga_log_rax
+        cmp rax, 0
+        jne .loop
+
+    pop rax
     ret
 
 %endif

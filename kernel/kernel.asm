@@ -125,14 +125,17 @@ jmp $ ; If/when kernel_main returns, we have nothing else to do, so we just loop
 %include "kernel/MMU/stack.asm"
 
 EXT_MEM_LEN dw 0
-FREE_MEM dq page_table
+FREE_MEM dq EXT_MEM_START
 
 %include "kernel/MMU/padding.asm"
 
-FS_START equ $ ; The start of the file system on the disk
+KERNEL_END equ $ ; The start of the file system on the disk
+KERNEL_LEN equ KERNEL_END - $$ ; The start of the file system on the disk
 
-mem_map equ 0x8000 ; Address at which to store the memory map
+mem_map equ 0x500 ; Address at which to store the memory map
 
-page_table equ 0x100000 ; Address at which to generate the page tables
+page_table equ EXT_MEM_START ; Address at which to generate the page tables
+
+EXT_MEM_START equ 0x100000 ; The start of extended memory
 
 %endif
