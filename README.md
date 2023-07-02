@@ -12,7 +12,7 @@ We are working on migrating the built live-image file to be a functional FAT-32 
 Next 2 sectors (1024 bytes): Reserved for the stack  
 Next 10 sectors (5120 bytes): Reserved for malloc (heap)  
 After this, any remaining space in the sector is padded with `0x00`  
-Memory Map (Will be loaded from BIOS into `0x8000`)  
+Memory Map (Will be loaded from BIOS into `0x500`)  
 Page Tables (Will be generated at `0x100000`)  
 
 ## Boot Process
