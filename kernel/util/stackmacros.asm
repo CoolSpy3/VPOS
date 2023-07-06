@@ -12,12 +12,12 @@ push rdi
 %endmacro
 
 %macro popaq 0
-pop rdi
-pop rsi
-pop rdx
-pop rcx
-pop rbx
-pop rax
+pop  rdi
+pop  rsi
+pop  rdx
+pop  rcx
+pop  rbx
+pop  rax
 %endmacro
 
 %endif

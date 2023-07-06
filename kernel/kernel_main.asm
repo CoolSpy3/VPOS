@@ -14,9 +14,9 @@ kernel_main:
     call ata_identify
 
     movzx rbx, word [EXT_MEM_LEN]
-    call vga_log_rbx
-    call vga_log_space
-    call dump_mem_map
+    call  vga_log_rbx
+    call  vga_log_space
+    call  dump_mem_map
 
     call format_mem_map
 
@@ -28,24 +28,24 @@ kernel_main:
 
     call vga_log_reset
 
-    mov rbx, INDEXING_MEMORY_MESSAGE
-    xor rcx, rcx
-    mov dh, 7
+    mov  rbx, INDEXING_MEMORY_MESSAGE
+    xor  rcx, rcx
+    mov  dh,  7
     call vga_textmode_setstring
 
     call setup_kalloc
 
     call clear_textmode_buffer
 
-    mov rcx, 0
-    mov rdx, 20
-    .loop: ; for(int i = 0; i < rdx; i++) { print(kalloc()); }
+    mov    rcx, 0
+    mov    rdx, 20
+    .loop:         ; for(int i = 0; i < rdx; i++) { print(kalloc()); }
         call kalloc
         call vga_log_rax
         call vga_log_space
-        inc rcx
-        cmp rcx, rdx
-        jb .loop
+        inc  rcx
+        cmp  rcx, rdx
+        jb   .loop
 
     ; TODO: SETUP PIC
     ; sti ; Enable interrupts

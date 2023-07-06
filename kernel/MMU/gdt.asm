@@ -15,20 +15,20 @@ gdt_null: ; null descriptor
 ; The limit and base are ignored in 64bit mode, but we still need to set them so that the kernel doesn't crash between loading the GDT and entering long-mode
 
 gdt_code: ; Long mode code segment, This wil be running for the rest of the program and is mostly just here to fulfill x86 segmentation requirements
-	dw 0xFFFF ; Limit 0-15
-	dw 0x0 ; Base 0-15
-	db 0x0 ; Base 16-23
+	dw 0xFFFF                                                    ; Limit 0-15
+	dw 0x0                                                       ; Base 0-15
+	db 0x0                                                       ; Base 16-23
 	db GDT_ENTRY_PRESENT | GDT_ENTRY_DPL_0 | GDT_ENTRY_TYPE_CODE
-	db GDT_ENTRY_GRANULARITY_4KB | GDT_ENTRY_64BIT | 1111b ; Limit 16-19
-	db 0x0 ; Base 24-31
+	db GDT_ENTRY_GRANULARITY_4KB | GDT_ENTRY_64BIT | 1111b       ; Limit 16-19
+	db 0x0                                                       ; Base 24-31
 
 gdt_data: ; Data segment for both 32 and 64 bit mode
-	dw 0xFFFF ; Limit 0-15
-	dw 0x0 ; Base 0-15
-	db 0x0 ; Base 16-23
+	dw 0xFFFF                                                                          ; Limit 0-15
+	dw 0x0                                                                             ; Base 0-15
+	db 0x0                                                                             ; Base 16-23
 	db GDT_ENTRY_PRESENT | GDT_ENTRY_DPL_0 | GDT_ENTRY_TYPE_DATA | GDT_ENTRY_WRITEABLE
-	db GDT_ENTRY_GRANULARITY_4KB | 1111b ; Limit 16-19
-	db 0x0 ; Base 24-31
+	db GDT_ENTRY_GRANULARITY_4KB | 1111b                                               ; Limit 16-19
+	db 0x0                                                                             ; Base 24-31
 
 gdt_end:
 

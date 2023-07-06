@@ -10,9 +10,9 @@ panic:
     jmp $
 
 panic_with_msg: ; rbx: string
-    mov cx, 0
-    mov dh, 7
+    mov  cx, 0
+    mov  dh, 7
     call vga_textmode_setstring
-    jmp $
+    jmp  $
 
 %endif

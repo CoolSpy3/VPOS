@@ -6,11 +6,11 @@
 %include "common/system_constants.asm"
 %include "kernel/util/panic.asm"
 
-%define ATA_SELECTED_DRIVE ATA_MASTER_DRIVE
+%define ATA_SELECTED_DRIVE    ATA_MASTER_DRIVE
 
-%define ATA_DRIVE_TYPE_ATA 0x1
-%define ATA_DRIVE_TYPE_ATAPI 0x2
-%define ATA_DRIVE_TYPE_SATA 0x3
+%define ATA_DRIVE_TYPE_ATA    0x1
+%define ATA_DRIVE_TYPE_ATAPI  0x2
+%define ATA_DRIVE_TYPE_SATA   0x3
 %define ATA_DRIVE_TYPE_SATAPI 0x4
 
 %if ATA_SELECTED_DRIVE == ATA_MASTER_DRIVE ; Calculate the value that should be written to the drive select port
@@ -44,51 +44,51 @@ ata_identify:
     mov al, ATA_COMMAND_IDENTIFY
     mov dx, ATA_IO_PORT_COMMAND
     out dx, al
-    in al, dx
+    in  al, dx
 
     cmp al, 0
-    jz .error ; Drive does not exist
+    jz  .error ; Drive does not exist
 
     ; Wait for drive to be ready
     mov dx, ATA_IO_PORT_STATUS
     .wait:
-        in al, dx
+        in   al, dx
         test al, ATA_STATUS_BSY
-        jnz .wait
+        jnz  .wait
 
     mov dx, ATA_IO_PORT_LBA_MID
-    in al, dx
+    in  al, dx
     cmp al, 0
-    jnz .error ; Drive is not ATA
+    jnz .error                   ; Drive is not ATA
     mov dx, ATA_IO_PORT_LBA_HIGH
-    in al, dx
+    in  al, dx
     cmp al, 0
-    jnz .error ; Drive is not ATA
+    jnz .error                   ; Drive is not ATA
 
     mov dx, ATA_IO_PORT_STATUS
     .wait2:
-        in al, dx
+        in   al, dx
         test al, ATA_STATUS_DRQ | ATA_STATUS_ERR
-        jz .wait2
+        jz   .wait2
 
     test al, ATA_STATUS_ERR
-    jz .read_data
+    jz   .read_data
 
     ; Drive returned error (some devices are supposed to do this)
     mov dx, ATA_IO_PORT_ERROR
-    in al, dx
+    in  al, dx
     cmp al, ATA_ERROR_ABRT
-    jne .error ; Drive did not abort command (This shouldn't happen)
+    jne .error                ; Drive did not abort command (This shouldn't happen)
 
     %macro check_device_type 3 ; %1 = expected LBA_MID, %2 = expected LBA_HIGH, %3 = device type
 
-        mov dx, ATA_IO_PORT_LBA_MID
-        in al, dx
-        cmp al, %1
+        mov dx,                ATA_IO_PORT_LBA_MID
+        in  al,                dx
+        cmp al,                %1
         jne %%not_this_device
-        mov dx, ATA_IO_PORT_LBA_HIGH
-        in al, dx
-        cmp al, %2
+        mov dx,                ATA_IO_PORT_LBA_HIGH
+        in  al,                dx
+        cmp al,                %2
         jne %%not_this_device
         mov [ata_device_type], byte %3
 
@@ -130,7 +130,7 @@ ata_identify:
 
     .error_msg: db "ATA: Invalid Drive", 0
 
-ata_read: ; esi = lba, edi = buffer, ecx = count
+ata_read: ; rsi = lba, rdi = buffer, ecx = sector count
     push rax
     push rbx
     push rcx
@@ -142,34 +142,34 @@ ata_read: ; esi = lba, edi = buffer, ecx = count
 
     ; Check if supported features info is valid
     test [ata_identify_data+ATA_IDENTIFY_SUPPORTED_FEATURES_OFFSET], word ATA_IDENTIFY_SUPPORTED_FEATURES_VALID_BIT_1
-    jz .lba28 ; If not, assume LBA28
+    jz   .lba28                                                                                                       ; If not, assume LBA28
     test [ata_identify_data+ATA_IDENTIFY_SUPPORTED_FEATURES_OFFSET], word ATA_IDENTIFY_SUPPORTED_FEATURES_VALID_BIT_2
-    jnz .lba28
+    jnz  .lba28
 
     test [ata_identify_data+ATA_IDENTIFY_SUPPORTED_FEATURES_OFFSET], word ATA_IDENTIFY_LBA_BIT ; Check if LBA48 is supported
-    jnz .lba48
+    jnz  .lba48
 
     .lba28:
-        mov rax, rsi ; Send drive select and high bits of LBA
+        mov rax, rsi                            ; Send drive select and high bits of LBA
         shr rax, 24
         and rax, 0xF
-        or al, ATA_IO_PORT_DRIVE_SELECT_VALUE
-        mov dx, ATA_IO_PORT_DRIVE_SELECT
-        out dx, al
+        or  al,  ATA_IO_PORT_DRIVE_SELECT_VALUE
+        mov dx,  ATA_IO_PORT_DRIVE_SELECT
+        out dx,  al
 
-        mov rax, rcx ; Send sector count
-        mov dx, ATA_IO_PORT_SECTOR_COUNT
-        out dx, al
+        mov rax, rcx                      ; Send sector count
+        mov dx,  ATA_IO_PORT_SECTOR_COUNT
+        out dx,  al
 
-        mov rax, rsi ; Send LBA
-        mov dx, ATA_IO_PORT_LBA_LOW
-        out dx, al
+        mov rax, rsi                  ; Send LBA
+        mov dx,  ATA_IO_PORT_LBA_LOW
+        out dx,  al
         shr rax, 8
-        mov dx, ATA_IO_PORT_LBA_MID
-        out dx, al
+        mov dx,  ATA_IO_PORT_LBA_MID
+        out dx,  al
         shr rax, 8
-        mov dx, ATA_IO_PORT_LBA_HIGH
-        out dx, al
+        mov dx,  ATA_IO_PORT_LBA_HIGH
+        out dx,  al
 
         mov al, ATA_COMMAND_READ_SECTORS ; Send READ SECTORS command
         mov dx, ATA_IO_PORT_COMMAND
@@ -182,35 +182,35 @@ ata_read: ; esi = lba, edi = buffer, ecx = count
         mov dx, ATA_IO_PORT_DRIVE_SELECT
         out dx, al
 
-        mov rax, rcx ; Send sector count high bits
+        mov rax, rcx                      ; Send sector count high bits
         shr rax, 8
-        mov dx, ATA_IO_PORT_SECTOR_COUNT
-        out dx, al
+        mov dx,  ATA_IO_PORT_SECTOR_COUNT
+        out dx,  al
 
-        mov rax, rsi ; Send LBA high bits
+        mov rax, rsi                  ; Send LBA high bits
         shr rax, 24
-        mov dx, ATA_IO_PORT_LBA_LOW
-        out dx, al
+        mov dx,  ATA_IO_PORT_LBA_LOW
+        out dx,  al
         shr rax, 8
-        mov dx, ATA_IO_PORT_LBA_MID
-        out dx, al
+        mov dx,  ATA_IO_PORT_LBA_MID
+        out dx,  al
         shr rax, 8
-        mov dx, ATA_IO_PORT_LBA_HIGH
-        out dx, al
+        mov dx,  ATA_IO_PORT_LBA_HIGH
+        out dx,  al
 
-        mov rax, rcx ; Send sector count low bits
-        mov dx, ATA_IO_PORT_SECTOR_COUNT
-        out dx, al
+        mov rax, rcx                      ; Send sector count low bits
+        mov dx,  ATA_IO_PORT_SECTOR_COUNT
+        out dx,  al
 
-        mov rax, rsi ; Send LBA low bits
-        mov dx, ATA_IO_PORT_LBA_LOW
-        out dx, al
+        mov rax, rsi                  ; Send LBA low bits
+        mov dx,  ATA_IO_PORT_LBA_LOW
+        out dx,  al
         shr rax, 8
-        mov dx, ATA_IO_PORT_LBA_MID
-        out dx, al
+        mov dx,  ATA_IO_PORT_LBA_MID
+        out dx,  al
         shr rax, 8
-        mov dx, ATA_IO_PORT_LBA_HIGH
-        out dx, al
+        mov dx,  ATA_IO_PORT_LBA_HIGH
+        out dx,  al
 
         mov al, ATA_COMMAND_READ_SECTORS_EXT ; Send READ SECTORS EXT command
         mov dx, ATA_IO_PORT_COMMAND
@@ -227,13 +227,13 @@ ata_read: ; esi = lba, edi = buffer, ecx = count
             in al, dx
 
             .wait:
-                in al, dx
+                in   al, dx
                 test al, ATA_STATUS_ERR | ATA_STATUS_DF
-                jnz .error
+                jnz  .error
                 test al, ATA_STATUS_BSY
-                jnz .wait
+                jnz  .wait
                 test al, ATA_STATUS_DRQ
-                jz .wait
+                jz   .wait
 
             mov dx, ATA_IO_PORT_DATA
 

@@ -31,13 +31,13 @@ vga_textmode_setchar: ;ch: row, cl: col, dx: char_data
     mov rax, 0
     mov rsi, 0
     mov rbx, VRAM_TEXT_START
-    mov al, SCREEN_NUM_COLS * 2 ; Each character is 2 bytes
+    mov al,  SCREEN_NUM_COLS * 2 ; Each character is 2 bytes
     mul ch
-    mov si, ax ;si = 160 * ch(row)
+    mov si,  ax                  ;si = 160 * ch(row)
 
-    mov al, 2
-    mul cl ; al = 2 * cl
-    add si, ax ; si = si + (2 * cl)
+    mov al,  2
+    mul cl       ; al = 2 * cl
+    add si,  ax  ; si = si + (2 * cl)
     add rbx, rsi
 
     ;example:
@@ -58,14 +58,14 @@ vga_textmode_setstring: ; rbx: string, ch: row, cl: col, dx: char_data
 
         inc rbx ; Move to the next character in the string
 
-        inc cl ; Move to the next column
+        inc cl                  ; Move to the next column
         cmp cl, SCREEN_NUM_COLS
-        jl .again
-        mov cl, 0 ; If we're at the end of the line, go to the next line
+        jl  .again
+        mov cl, 0               ; If we're at the end of the line, go to the next line
 
-        inc ch ; This code was (maybe) being buggy before. I uncommented it, and it appears to work now, so ima assume the previous comment was wrong
+        inc ch                  ; This code was (maybe) being buggy before. I uncommented it, and it appears to work now, so ima assume the previous comment was wrong
         cmp ch, SCREEN_NUM_ROWS
-        jl .end ; If we're at the end of the screen, stop
+        jl  .end                ; If we're at the end of the screen, stop
 
         .again:
 
@@ -86,15 +86,15 @@ vga_textmode_showhex: ; rax: val, cl: x, ch: y, dl: color
 
     .loop:
     call .readChar ; Put the lower 4 bits of rax into hex_string[rcx]
-    shr rax, 4 ; Shift rax right 4 bits and shift rcx to the next character
-    sub rcx, 1
+    shr  rax, 4    ; Shift rax right 4 bits and shift rcx to the next character
+    sub  rcx, 1
 
     cmp rcx, 2 ; If we're at the beginning of the string, stop
     jae .loop
 
     pop rcx
 
-    mov rbx, hex_string ; Print hex_string
+    mov  rbx, hex_string        ; Print hex_string
     call vga_textmode_setstring
 
     popaq
@@ -102,33 +102,33 @@ vga_textmode_showhex: ; rax: val, cl: x, ch: y, dl: color
 
     .readChar: ; al: val, rcx: offset into hex_string
         push ax
-        and al, 0xF ; Get the lower 4 bits of al
-        add al, '0' ; Convert to ASCII
-        cmp al, 0xA+'0' ; If al is greater than 0xA, we need to convert it to a letter
-        jb .readChar_put
-        add al, 'A'-'0'-0xA ; Convert to ASCII letter
+        and  al,               0xF         ; Get the lower 4 bits of al
+        add  al,               '0'         ; Convert to ASCII
+        cmp  al,               0xA+'0'     ; If al is greater than 0xA, we need to convert it to a letter
+        jb   .readChar_put
+        add  al,               'A'-'0'-0xA ; Convert to ASCII letter
         .readChar_put:
-        mov [hex_string+rcx], al ; Put the character into hex_string
-        pop ax
+        mov  [hex_string+rcx], al          ; Put the character into hex_string
+        pop  ax
         ret
 
 vga_textmode_showraxandhang:
-    mov cl, 0
-    mov ch, 0
-    mov dh, byte 0x5
+    mov  cl, 0
+    mov  ch, 0
+    mov  dh, byte 0x5
     call vga_textmode_showhex
-    jmp $
+    jmp  $
 
 vga_textmode_showalascharandhang:
-    mov cl, 0
-    mov ch, 0
-    mov dh, byte 0x5
-    mov dl, al
+    mov  cl, 0
+    mov  ch, 0
+    mov  dh, byte 0x5
+    mov  dl, al
     call vga_textmode_setchar
-    jmp $
+    jmp  $
 
 hex_string:
-    db '0x'
+    db             '0x'
     times 8*2+1 db 0
 
 %endif
