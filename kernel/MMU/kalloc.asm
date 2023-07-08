@@ -10,8 +10,7 @@ setup_kalloc:
     push rax
     push rbx
     push rcx
-    mov  rax, (( (KERNEL_LEN + 4096 - 1) / 4096 ) + 1) * 4096 ; The +1 is to account for the first 4 KiB. We want to skip this to preserve the BDA.
-    mov  rax, 0xbff00000-4096*1000
+    mov  rax, (( (KERNEL_LEN + (4096 - 1) ) / 4096 ) + 1) * 4096 ; The +1 is to account for the first 4 KiB. We want to skip this to preserve the BDA.
 
     movzx rcx, word [mem_map]
     shl   rcx, 5
@@ -75,7 +74,7 @@ setup_kalloc:
     pop rax
     ret
 
-kalloc: ; Returns mem in rax
+kalloc: ; Allocates rcx sectors and returns the pointer in rax
     cmp byte [IS_KALLOC_SETUP], 0
     je  seq_alloc                 ; kalloc is not set up yet; use seq_alloc instead
 
@@ -102,7 +101,7 @@ kalloc: ; Returns mem in rax
         mov rbx, OUT_OF_MEMORY_MSG
         jmp panic_with_msg
 
-kfree: ; Frees mem in rax
+kfree: ; Frees rcx sectors starting from rax
     push rbx
 
     mov rbx, KALLOC_NOT_SETUP_MSG
